@@ -3,5 +3,6 @@ export * from "./profile";
 export * from "./rule";
 export * from "./remap";
 export * from "./bind";
+export * from "./layer";
 
 export * from "./outputs";
