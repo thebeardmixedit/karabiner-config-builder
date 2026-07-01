@@ -4,25 +4,25 @@ import { compileLayer, type LayerDefinition } from "./layer";
 export type RuleEntry = Manipulator | LayerDefinition;
 
 export function rule(description: string, entries: RuleEntry[]): Rule {
-  return {
-    description,
-    manipulators: entries.flatMap(compileRuleEntry),
-  };
+    return {
+        description,
+        manipulators: entries.flatMap(compileRuleEntry),
+    };
 }
 
 function compileRuleEntry(entry: RuleEntry): Manipulator[] {
-  if (isLayerDefinition(entry)) {
-    return compileLayer(entry);
-  }
+    if (isLayerDefinition(entry)) {
+        return compileLayer(entry);
+    }
 
-  return [entry];
+    return [entry];
 }
 
 function isLayerDefinition(entry: RuleEntry): entry is LayerDefinition {
-  return (
-    typeof entry === "object" &&
-    entry !== null &&
-    "kind" in entry &&
-    entry.kind === "layer"
-  );
+    return (
+        typeof entry === "object" &&
+        entry !== null &&
+        "kind" in entry &&
+        entry.kind === "layer"
+    );
 }
