@@ -1,0 +1,32 @@
+# personal notes/todos
+notes.md
+
+# VS Code project directory, not necessary to git.
+.vscode
+
+# Tests directories and files
+**__test__
+**test.sh
+
+# Backup directories
+**.bu
+
+# Logs
+**.log
+
+# Why u be like that
+*.DS_Store
+
+# Folder view configuration files.
+Desktop.ini
+
+# Thumbnail cache files.
+._*
+Thumbs.db
+
+# Environment files
+**.env
+**.env.sh
+
+# Vim undo history
+**.vimrc.un~
