@@ -30,3 +30,6 @@ Thumbs.db
 
 # Vim undo history
 **.vimrc.un~
+
+# My build
+karabiner.json
