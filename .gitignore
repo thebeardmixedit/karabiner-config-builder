@@ -1,35 +1,37 @@
-# personal notes/todos
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+karabiner.json
+
+# Personal notes/todos
 notes.md
 
-# VS Code project directory, not necessary to git.
-.vscode
+# Editor/project files
+.vscode/
 
-# Tests directories and files
-**__test__
-**test.sh
+# Test files
+**/__test__/
+**/test.sh
 
-# Backup directories
-**.bu
+# Backups
+**/.bu/
 
 # Logs
-**.log
+*.log
 
-# Why u be like that
-*.DS_Store
-
-# Folder view configuration files.
-Desktop.ini
-
-# Thumbnail cache files.
+# macOS
+.DS_Store
 ._*
+Desktop.ini
 Thumbs.db
 
 # Environment files
-**.env
-**.env.sh
+.env
+.env.*
+*.env
+*.env.sh
 
 # Vim undo history
-**.vimrc.un~
-
-# My build
-karabiner.json
+*.un~
