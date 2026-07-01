@@ -12,9 +12,15 @@ This project is under construction. The API is still being designed, tested, and
 - Support profiles, simple modifications, complex rules, layers, and reusable helpers
 - Keep the public API generic enough to be useful beyond one personal setup
 
-## Current status
+## Status
 
-The basic build pipeline is working:
+This project is public for development transparency, but it is not ready for general use.
+
+The API is unstable, the deploy script is currently tailored to the author's local setup, and generated configs should be reviewed before use.
+
+## Warning
+
+Do not run `npm run deploy` unless you have reviewed `bin/deploy` and understand where it writes files.
 
 ```txt
 TypeScript config
