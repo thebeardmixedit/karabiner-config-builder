@@ -1,13 +1,4 @@
-import {
-    app,
-    bind,
-    frontmostApplicationUnless,
-    key,
-    layer,
-    profile,
-    rule,
-    setup,
-} from "./builder";
+import { aerospace, bind, profile, rule, setup, soundflow } from "./builder";
 
 import type { KarabinerConfig } from "./karabiner";
 
@@ -18,23 +9,14 @@ export const config: KarabinerConfig = setup({
             selected: true,
 
             rules: [
-                rule("Conditional bindings", [
-                    bind("f18", app("Ghostty"), {
-                        description: "Open Ghostty unless already focused",
-                        conditions: [
-                            frontmostApplicationUnless([
-                                "^com\\.mitchellh\\.ghostty$",
-                            ]),
-                        ],
-                    }),
-
-                    layer("caps_lock", {
-                        alone: key("escape"),
-
-                        bindings: {
-                            g: app("Ghostty"),
-                        },
-                    }),
+                rule("Integration tests", [
+                    bind("f18", aerospace("workspace 1")),
+                    bind(
+                        "f19",
+                        soundflow(
+                            "user:cm7z8uees0005yb10ynl9wtud:cmquid83z0000y723mhtrsr0j",
+                        ),
+                    ),
                 ]),
             ],
         }),
