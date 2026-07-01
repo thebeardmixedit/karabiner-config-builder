@@ -1,7 +1,8 @@
 {
-  "name": "karabiner",
+  "name": "karabiner-config-builder",
   "version": "0.1.0",
   "private": true,
+  "description": "A TypeScript builder for generating karabiner.json.",
   "type": "module",
   "scripts": {
     "build": "tsx src/index.ts",
@@ -9,6 +10,18 @@
     "check": "tsc --noEmit",
     "deploy": "./bin/deploy"
   },
+  "keywords": [
+    "karabiner",
+    "karabiner-elements",
+    "typescript",
+    "keyboard",
+    "keybindings"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thebeardmixedit/karabiner-config-builder.git"
+  },
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.0.0",
     "nodemon": "^3.1.0",
