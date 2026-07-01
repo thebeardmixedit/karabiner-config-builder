@@ -11,11 +11,11 @@ cd "$project_dir"
 npm run check
 npm run build
 
-# mkdir -p "$(dirname "$dotfiles_config")"
-# mkdir -p "$(dirname "$live_config")"
+mkdir -p "$(dirname "$dotfiles_config")"
+mkdir -p "$(dirname "$live_config")"
 
-# cp "$project_dir/karabiner.json" "$dotfiles_config"
-# ln -sf "$dotfiles_config" "$live_config"
+cp "$project_dir/karabiner.json" "$dotfiles_config"
+ln -sf "$dotfiles_config" "$live_config"
 
 echo "Deployed Karabiner config:"
 echo "  generated: $project_dir/karabiner.json"
