@@ -1,21 +1,40 @@
-import { profile, rule, setup } from "./builder";
-import type { KarabinerConfig, To } from "./karabiner";
+import {
+    app,
+    bind,
+    frontmostApplicationUnless,
+    key,
+    layer,
+    profile,
+    rule,
+    setup,
+} from "./builder";
+
+import type { KarabinerConfig } from "./karabiner";
 
 export const config: KarabinerConfig = setup({
     profiles: [
         profile({
-            name: "Validation Test",
+            name: "Moonlander",
             selected: true,
 
             rules: [
-                rule("Empty output", [
-                    {
-                        type: "basic",
-                        from: {
-                            key_code: "f18",
+                rule("Conditional bindings", [
+                    bind("f18", app("Ghostty"), {
+                        description: "Open Ghostty unless already focused",
+                        conditions: [
+                            frontmostApplicationUnless([
+                                "^com\\.mitchellh\\.ghostty$",
+                            ]),
+                        ],
+                    }),
+
+                    layer("caps_lock", {
+                        alone: key("escape"),
+
+                        bindings: {
+                            g: app("Ghostty"),
                         },
-                        to: [{} as To],
-                    },
+                    }),
                 ]),
             ],
         }),

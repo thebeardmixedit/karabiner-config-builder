@@ -1,4 +1,5 @@
-import type { Condition, Manipulator, To } from "../karabiner";
+import type { Manipulator, To } from "../karabiner";
+import { variableIf } from "./conditions";
 
 export type Output = To | To[];
 
@@ -136,14 +137,6 @@ function createLayerBinding(
 
 function normalizeOutput(output: Output): To[] {
     return Array.isArray(output) ? output : [output];
-}
-
-function variableIf(name: string, value: string | number | boolean): Condition {
-    return {
-        type: "variable_if",
-        name,
-        value,
-    };
 }
 
 function formatLayerPath(path: string[]): string {
