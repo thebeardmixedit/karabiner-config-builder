@@ -18,11 +18,11 @@ export const config: KarabinerConfig = setup({
                     tapped: key("escape"),
 
                     bindings: {
-                        g: app("Ghostty"),
+                        g: app("com.mitchellh.ghostty"),
 
                         o: layer("open", {
                             bindings: {
-                                c: app("ChatGPT"),
+                                c: app("com.openai.chat"),
                             },
                         }),
                     },

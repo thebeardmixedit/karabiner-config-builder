@@ -77,7 +77,7 @@ brew install fzf
 - Output helpers:
     - `key()`
     - `shell()`
-    - `app()`
+    - `app()` for opening apps by bundle identifier
     - `url()`
     - `combine()`
 - Condition helpers:
@@ -132,21 +132,24 @@ import { bind, key, profile, rule, setup } from "karabiner-config-builder";
 
 export const config = setup({
     profiles: [
-        profile({
-            name: "Main",
-            selected: true,
-            virtual_hid_keyboard: {
-                keyboard_type_v2: "ansi",
+        profile(
+            {
+                name: "Main",
+                selected: true,
+                virtual_hid_keyboard: {
+                    keyboard_type_v2: "ansi",
+                },
             },
-            rules: [
-                rule("Global bindings", [
-                    bind("caps_lock", key("left_control"), {
-                        description: "Caps Lock as Control, Escape when tapped",
-                        tapped: key("escape"),
-                    }),
-                ]),
-            ],
-        }),
+
+            rule(
+                "Global bindings",
+
+                bind("caps_lock", key("left_control"), {
+                    description: "Caps Lock as Control, Escape when tapped",
+                    tapped: key("escape"),
+                }),
+            ),
+        ),
     ],
 });
 ```
@@ -166,22 +169,57 @@ import type { KarabinerConfig } from "path/to/repo/directory/karabiner-config-bu
 
 export const config: KarabinerConfig = setup({
     profiles: [
-        profile({
-            name: "Main",
-            selected: true,
-            virtual_hid_keyboard: {
-                keyboard_type_v2: "ansi",
+        profile(
+            {
+                name: "Main",
+                selected: true,
+                virtual_hid_keyboard: {
+                    keyboard_type_v2: "ansi",
+                },
             },
-            rules: [
-                rule("Global bindings", [
-                    bind("f10", key("escape"), {
-                        description: "F10 to Escape",
-                    }),
-                ]),
-            ],
-        }),
+
+            rule(
+                "Global bindings",
+
+                bind("f10", key("escape"), {
+                    description: "F10 to Escape",
+                }),
+            ),
+        ),
     ],
 });
+```
+
+## Opening apps
+
+Use `app()` to open or focus an application by bundle identifier:
+
+```ts
+app("com.mitchellh.ghostty");
+app("com.apple.finder");
+app("com.avid.ProTools");
+```
+
+`app()` generates Karabiner's native `software_function.open_application` output.
+
+By default, apps are opened as frontmost:
+
+```ts
+app("com.mitchellh.ghostty");
+```
+
+To open an app without forcing it to the foreground, pass `frontmost: false`:
+
+```ts
+app("com.mitchellh.ghostty", { frontmost: false });
+```
+
+You can find an application's bundle identifier with AppleScript:
+
+```sh
+osascript -e 'id of app "Ghostty"'
+osascript -e 'id of app "ChatGPT"'
+osascript -e 'id of app "Pro Tools"'
 ```
 
 ## Example layer
@@ -198,30 +236,34 @@ import {
 
 export const config = setup({
     profiles: [
-        profile({
-            name: "Main",
-            selected: true,
-            virtual_hid_keyboard: {
-                keyboard_type_v2: "ansi",
+        profile(
+            {
+                name: "Main",
+                selected: true,
+                virtual_hid_keyboard: {
+                    keyboard_type_v2: "ansi",
+                },
             },
-            rules: [
-                rule("Global layers", [
-                    layer("caps_lock", {
-                        tapped: key("escape"),
 
-                        bindings: {
-                            g: app("Ghostty"),
+            rule(
+                "Global layers",
 
-                            o: layer("open", {
-                                bindings: {
-                                    c: app("ChatGPT"),
-                                },
-                            }),
-                        },
-                    }),
-                ]),
-            ],
-        }),
+                layer("caps_lock", {
+                    tapped: key("escape"),
+
+                    bindings: {
+                        g: app("com.mitchellh.ghostty"),
+
+                        o: layer("open", {
+                            bindings: {
+                                c: app("com.openai.chat"),
+                                f: app("com.apple.finder"),
+                            },
+                        }),
+                    },
+                }),
+            ),
+        ),
     ],
 });
 ```
@@ -248,32 +290,53 @@ const moonlander = {
 
 export const config = setup({
     profiles: [
-        profile({
-            name: "Main",
-            selected: true,
-            virtual_hid_keyboard: {
-                keyboard_type_v2: "ansi",
+        profile(
+            {
+                name: "Main",
+                selected: true,
+                virtual_hid_keyboard: {
+                    keyboard_type_v2: "ansi",
+                },
             },
-            rules: [
-                rule("Conditional bindings", [
-                    bind("f10", key("escape"), {
-                        description: "F10 to Escape from Moonlander",
-                        conditions: [fromDevice([moonlander])],
-                    }),
 
-                    bind("f11", key("escape"), {
-                        description:
-                            "F11 to Escape in Finder, except System Settings",
-                        conditions: [
-                            inApp(["^com\\.apple\\.finder$"]),
-                            exceptInApp(["^com\\.apple\\.SystemSettings$"]),
-                        ],
-                    }),
-                ]),
-            ],
-        }),
+            rule(
+                "Conditional bindings",
+
+                bind("f10", key("escape"), {
+                    description: "F10 to Escape from Moonlander",
+                    conditions: [fromDevice(moonlander)],
+                }),
+
+                bind("f11", key("escape"), {
+                    description:
+                        "F11 to Escape in Finder, except System Settings",
+                    conditions: [
+                        inApp("com.apple.finder"),
+                        exceptInApp("com.apple.SystemSettings"),
+                    ],
+                }),
+            ),
+        ),
     ],
 });
+```
+
+App conditions accept plain bundle identifiers. The builder converts them to the regular expression format Karabiner expects.
+
+For multiple apps, pass multiple arguments:
+
+```ts
+inApp("com.apple.finder", "com.mitchellh.ghostty");
+
+exceptInApp("com.apple.SystemSettings", "com.apple.ActivityMonitor");
+```
+
+For an explicit regular expression escape hatch, use `bundleIdPattern()`:
+
+```ts
+import { bundleIdPattern, inApp } from "karabiner-config-builder";
+
+inApp(bundleIdPattern("^com\\.avid\\..*$"));
 ```
 
 ## Commands

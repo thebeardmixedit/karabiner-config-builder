@@ -1,6 +1,16 @@
 import type { To } from "../../karabiner";
-import { shell } from "./shell";
 
-export function app(name: string): To {
-    return shell(`open -a '${name}.app'`);
+interface AppOptions {
+    frontmost?: boolean;
+}
+
+export function app(bundleId: string, options: AppOptions = {}): To {
+    return {
+        software_function: {
+            open_application: {
+                bundle_identifier: bundleId,
+                frontmost: options.frontmost ?? true,
+            },
+        },
+    };
 }
