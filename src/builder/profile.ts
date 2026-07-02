@@ -22,9 +22,16 @@ export interface ProfileOptions {
     rules?: Rule[];
 }
 
-export function profile(options: ProfileOptions): Profile {
+export function profile(options: ProfileOptions): Profile;
+export function profile(options: ProfileOptions, ...rules: Rule[]): Profile;
+export function profile(
+    options: ProfileOptions,
+    ...extraRules: Rule[]
+): Profile {
+    const rules = normalizeRules(options.rules, extraRules);
+
     const complex_modifications: ComplexModifications = {
-        rules: options.rules ?? [],
+        rules,
     };
 
     if (options.parameters) {
@@ -57,4 +64,11 @@ export function profile(options: ProfileOptions): Profile {
     }
 
     return result;
+}
+
+function normalizeRules(
+    optionRules: Rule[] | undefined,
+    extraRules: Rule[],
+): Rule[] {
+    return [...(optionRules ?? []), ...extraRules];
 }
