@@ -9,7 +9,7 @@ This project is under construction. The API is still being designed, tested, and
 - Keep Karabiner config declarative and readable
 - Model the final `karabiner.json` shape with TypeScript
 - Generate Karabiner JSON instead of hand-authoring it
-- Support profiles, simple modifications, complex rules, layers, conditions, and reusable helpers
+- Support profiles, simple modifications, complex rules, layers, conditions, integrations, and reusable helpers
 - Load a user-owned TypeScript config from a predictable location
 - Keep the public API generic enough to be useful beyond one personal setup
 
@@ -66,7 +66,7 @@ brew install fzf
 - Deploy command for writing to Karabiner's config location
 - Optional symlink deploy mode
 - Backup and restore helpers for the active Karabiner config
-- Test configs for live feature testing
+- Test configs for live/manual feature testing
 - Builder helpers:
     - `setup()`
     - `profile()`
@@ -85,6 +85,18 @@ brew install fzf
     - `variableUnless()`
     - `frontmostApplicationIf()`
     - `frontmostApplicationUnless()`
+    - `deviceIf()`
+    - `deviceUnless()`
+    - `deviceExistsIf()`
+    - `deviceExistsUnless()`
+    - `keyboardTypeIf()`
+    - `keyboardTypeUnless()`
+    - `inputSourceIf()`
+    - `inputSourceUnless()`
+    - `expressionIf()`
+    - `expressionUnless()`
+    - `eventChangedIf()`
+    - `eventChangedUnless()`
 - Integration helpers:
     - `aerospace()`
     - `soundflow()`
@@ -148,7 +160,7 @@ import {
     profile,
     rule,
     setup,
-} from "path/to/repo/directory/karabiner-config-builder/src/karabiner";
+} from "path/to/repo/directory/karabiner-config-builder/src/builder";
 
 import type { KarabinerConfig } from "path/to/repo/directory/karabiner-config-builder/src/karabiner";
 
@@ -278,6 +290,12 @@ Search backups with `fzf`:
 npm run restore:search
 ```
 
+### Backup/restore warning
+
+Backup and restore currently copy file contents. Symlink-aware backup/restore is planned, but not implemented yet.
+
+If your active Karabiner config is symlinked, review the backup and restore scripts before relying on them.
+
 ## Test configs
 
 This repository includes test configs for live/manual testing:
@@ -285,6 +303,7 @@ This repository includes test configs for live/manual testing:
 ```txt
 tests/bind.ts
 tests/layer.ts
+tests/conditions.ts
 ```
 
 These are not polished examples. They are small configs used to verify builder behavior against Karabiner.
@@ -294,6 +313,7 @@ Build them with:
 ```sh
 npm run build:test:bind
 npm run build:test:layer
+npm run build:test:conditions
 ```
 
 Or deploy one directly:
