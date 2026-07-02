@@ -148,9 +148,9 @@ import {
     profile,
     rule,
     setup,
-} from "../../Code/personal/karabiner-config-builder/src/builder";
+} from "path/to/repo/directory/karabiner-config-builder/src/karabiner";
 
-import type { KarabinerConfig } from "../../Code/personal/karabiner-config-builder/src/karabiner";
+import type { KarabinerConfig } from "path/to/repo/directory/karabiner-config-builder/src/karabiner";
 
 export const config: KarabinerConfig = setup({
     profiles: [
