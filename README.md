@@ -290,11 +290,16 @@ Search backups with `fzf`:
 npm run restore:search
 ```
 
-### Backup/restore warning
+Backup and restore preserve whether the active Karabiner config is a regular file or a symlink.
 
-Backup and restore currently copy file contents. Symlink-aware backup/restore is planned, but not implemented yet.
+Backups are stored as timestamped directories:
 
-If your active Karabiner config is symlinked, review the backup and restore scripts before relying on them.
+```txt
+~/.config/karabiner/kcb_backups/
+  20260702-021500/
+    metadata.json
+    karabiner.json
+```
 
 ## Test configs
 

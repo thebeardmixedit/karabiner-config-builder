@@ -56,6 +56,7 @@ function copyKarabinerConfig(fromPath: string, toPath: string): void {
     }
 
     fs.mkdirSync(path.dirname(toPath), { recursive: true });
+    removeExistingPath(toPath);
     fs.copyFileSync(fromPath, toPath);
 }
 
@@ -70,4 +71,20 @@ function symlinkKarabinerConfig(
     fs.mkdirSync(path.dirname(karabinerConfigPath), { recursive: true });
     fs.rmSync(karabinerConfigPath, { force: true });
     fs.symlinkSync(symlinkFromPath, karabinerConfigPath);
+}
+
+function removeExistingPath(filePath: string): void {
+    if (!fs.existsSync(filePath) && !isSymlink(filePath)) {
+        return;
+    }
+
+    fs.rmSync(filePath, { force: true });
+}
+
+function isSymlink(filePath: string): boolean {
+    try {
+        return fs.lstatSync(filePath).isSymbolicLink();
+    } catch {
+        return false;
+    }
 }

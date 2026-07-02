@@ -14,9 +14,9 @@
         "deploy:test:bind": "tsx src/cli/deploy.ts --config tests/bind.ts",
         "deploy:test:layer": "tsx src/cli/deploy.ts --config tests/layer.ts",
         "deploy:test:conditions": "tsx src/cli/deploy.ts --config tests/conditions.ts",
-        "backup": "bin/backup",
-        "restore": "bin/restore",
-        "restore:search": "bin/restore --search"
+        "backup": "tsx src/cli/backup.ts",
+        "restore": "tsx src/cli/restore.ts",
+        "restore:search": "tsx src/cli/restore.ts --search"
     },
     "keywords": [
         "karabiner",

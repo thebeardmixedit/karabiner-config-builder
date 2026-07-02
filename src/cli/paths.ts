@@ -20,6 +20,13 @@ export const DEFAULT_KARABINER_CONFIG_PATH = path.join(
     "karabiner.json",
 );
 
+export const DEFAULT_BACKUP_DIR = path.join(
+    os.homedir(),
+    ".config",
+    "karabiner",
+    "kcb_backups",
+);
+
 export function resolvePath(filePath: string): string {
     if (filePath === "~") {
         return os.homedir();
@@ -44,4 +51,8 @@ export function resolveKarabinerConfigPath(
     configPath = DEFAULT_KARABINER_CONFIG_PATH,
 ): string {
     return resolvePath(configPath);
+}
+
+export function resolveBackupDir(backupDir = DEFAULT_BACKUP_DIR): string {
+    return resolvePath(backupDir);
 }
