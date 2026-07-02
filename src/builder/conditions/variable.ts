@@ -1,6 +1,6 @@
 import type { Condition, VariableValue } from "../../karabiner";
 
-export function variableIf(name: string, value: VariableValue): Condition {
+export function variableIs(name: string, value: VariableValue): Condition {
     return {
         type: "variable_if",
         name,
@@ -8,7 +8,10 @@ export function variableIf(name: string, value: VariableValue): Condition {
     };
 }
 
-export function variableUnless(name: string, value: VariableValue): Condition {
+export function exceptVariableIs(
+    name: string,
+    value: VariableValue,
+): Condition {
     return {
         type: "variable_unless",
         name,

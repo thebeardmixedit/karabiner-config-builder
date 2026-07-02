@@ -1,19 +1,15 @@
 import type { Condition } from "../../karabiner";
 
-export function frontmostApplicationIf(
-    bundle_identifiers: string[],
-): Condition {
+export function inApp(bundleIdentifiers: string[]): Condition {
     return {
         type: "frontmost_application_if",
-        bundle_identifiers,
+        bundle_identifiers: bundleIdentifiers,
     };
 }
 
-export function frontmostApplicationUnless(
-    bundle_identifiers: string[],
-): Condition {
+export function exceptInApp(bundleIdentifiers: string[]): Condition {
     return {
         type: "frontmost_application_unless",
-        bundle_identifiers,
+        bundle_identifiers: bundleIdentifiers,
     };
 }

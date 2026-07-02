@@ -1,15 +1,17 @@
 import type { Condition, KeyboardType } from "../../karabiner";
 
-export function keyboardTypeIf(keyboard_types: KeyboardType[]): Condition {
+export function fromKeyboardType(keyboardTypes: KeyboardType[]): Condition {
     return {
         type: "keyboard_type_if",
-        keyboard_types,
+        keyboard_types: keyboardTypes,
     };
 }
 
-export function keyboardTypeUnless(keyboard_types: KeyboardType[]): Condition {
+export function exceptFromKeyboardType(
+    keyboardTypes: KeyboardType[],
+): Condition {
     return {
         type: "keyboard_type_unless",
-        keyboard_types,
+        keyboard_types: keyboardTypes,
     };
 }

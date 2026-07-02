@@ -1,25 +1,25 @@
 import {
     bind,
-    deviceExistsIf,
-    deviceExistsUnless,
-    deviceIf,
-    deviceUnless,
-    eventChangedIf,
-    eventChangedUnless,
-    expressionIf,
-    expressionUnless,
-    frontmostApplicationIf,
-    frontmostApplicationUnless,
-    inputSourceIf,
-    inputSourceUnless,
+    eventChanged,
+    exceptEventChanged,
+    exceptExpressionIsTrue,
+    exceptFromDevice,
+    exceptFromInputSource,
+    exceptFromKeyboardType,
+    exceptInApp,
+    exceptVariableIs,
+    exceptWithDeviceConnected,
+    expressionIsTrue,
+    fromDevice,
+    fromInputSource,
+    fromKeyboardType,
+    inApp,
     key,
-    keyboardTypeIf,
-    keyboardTypeUnless,
     profile,
     rule,
     setup,
-    variableIf,
-    variableUnless,
+    variableIs,
+    withDeviceConnected,
 } from "../src/builder";
 
 import type { KarabinerConfig } from "../src/karabiner";
@@ -41,29 +41,27 @@ export const config: KarabinerConfig = setup({
                     bind("f10", key("escape"), {
                         description: "Test variable conditions",
                         conditions: [
-                            variableIf("condition_test_enabled", 1),
-                            variableUnless("condition_test_disabled", 1),
+                            variableIs("condition_test_enabled", 1),
+                            exceptVariableIs("condition_test_disabled", 1),
                         ],
                     }),
 
                     bind("f11", key("escape"), {
                         description: "Test frontmost application conditions",
                         conditions: [
-                            frontmostApplicationIf([
+                            inApp([
                                 "^com\\.apple\\.finder$",
                                 "^com\\.mitchellh\\.ghostty$",
                             ]),
-                            frontmostApplicationUnless([
-                                "^com\\.apple\\.SystemSettings$",
-                            ]),
+                            exceptInApp(["^com\\.apple\\.SystemSettings$"]),
                         ],
                     }),
 
                     bind("f12", key("escape"), {
-                        description: "Test device conditions",
+                        description: "Test device source conditions",
                         conditions: [
-                            deviceIf([moonlander]),
-                            deviceUnless([
+                            fromDevice([moonlander]),
+                            exceptFromDevice([
                                 {
                                     vendor_id: 0,
                                     product_id: 0,
@@ -74,13 +72,13 @@ export const config: KarabinerConfig = setup({
                     }),
 
                     bind("f10", key("tab"), {
-                        description: "Test device exists conditions",
+                        description: "Test connected device conditions",
                         modifiers: {
                             mandatory: ["left_shift"],
                         },
                         conditions: [
-                            deviceExistsIf([moonlander]),
-                            deviceExistsUnless([
+                            withDeviceConnected([moonlander]),
+                            exceptWithDeviceConnected([
                                 {
                                     vendor_id: 0,
                                     product_id: 0,
@@ -96,8 +94,8 @@ export const config: KarabinerConfig = setup({
                             mandatory: ["left_shift"],
                         },
                         conditions: [
-                            keyboardTypeIf(["ansi"]),
-                            keyboardTypeUnless(["jis"]),
+                            fromKeyboardType(["ansi"]),
+                            exceptFromKeyboardType(["jis"]),
                         ],
                     }),
 
@@ -107,12 +105,12 @@ export const config: KarabinerConfig = setup({
                             mandatory: ["left_shift"],
                         },
                         conditions: [
-                            inputSourceIf([
+                            fromInputSource([
                                 {
                                     language: "en",
                                 },
                             ]),
-                            inputSourceUnless([
+                            exceptFromInputSource([
                                 {
                                     language: "ja",
                                 },
@@ -126,8 +124,8 @@ export const config: KarabinerConfig = setup({
                             mandatory: ["left_control"],
                         },
                         conditions: [
-                            expressionIf("1 == 1"),
-                            expressionUnless("1 == 0"),
+                            expressionIsTrue("1 == 1"),
+                            exceptExpressionIsTrue("1 == 0"),
                         ],
                     }),
 
@@ -136,10 +134,7 @@ export const config: KarabinerConfig = setup({
                         modifiers: {
                             mandatory: ["left_control"],
                         },
-                        conditions: [
-                            eventChangedIf(true),
-                            eventChangedUnless(false),
-                        ],
+                        conditions: [eventChanged(), exceptEventChanged(false)],
                     }),
                 ]),
             ],

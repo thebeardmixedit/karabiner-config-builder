@@ -1,15 +1,15 @@
 import type { Condition, InputSource } from "../../karabiner";
 
-export function inputSourceIf(input_sources: InputSource[]): Condition {
+export function fromInputSource(inputSources: InputSource[]): Condition {
     return {
         type: "input_source_if",
-        input_sources,
+        input_sources: inputSources,
     };
 }
 
-export function inputSourceUnless(input_sources: InputSource[]): Condition {
+export function exceptFromInputSource(inputSources: InputSource[]): Condition {
     return {
         type: "input_source_unless",
-        input_sources,
+        input_sources: inputSources,
     };
 }

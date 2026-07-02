@@ -1,5 +1,5 @@
 import type { Manipulator, To } from "../karabiner";
-import { variableIf } from "./conditions";
+import { variableIs } from "./conditions";
 
 export type Output = To | To[];
 
@@ -9,12 +9,12 @@ export interface LayerDefinition {
     kind: "layer";
     name: string;
     key: string;
-    alone?: Output;
+    tapped?: Output;
     bindings: Record<string, Binding>;
 }
 
 export interface LayerOptions {
-    alone?: Output;
+    tapped?: Output;
     bindings?: Record<string, Binding>;
 }
 
@@ -29,7 +29,7 @@ export function layer(
         name: keyOrName,
         key: keyOrName,
         bindings: options.bindings ?? {},
-        ...(options.alone ? { alone: options.alone } : {}),
+        ...(options.tapped ? { tapped: options.tapped } : {}),
     };
 }
 
@@ -105,12 +105,12 @@ function createLayerActivator(
         ],
     };
 
-    if (definition.alone) {
-        manipulator.to_if_alone = normalizeOutput(definition.alone);
+    if (definition.tapped) {
+        manipulator.to_if_alone = normalizeOutput(definition.tapped);
     }
 
     if (parentVariable) {
-        manipulator.conditions = [variableIf(parentVariable, 1)];
+        manipulator.conditions = [variableIs(parentVariable, 1)];
     }
 
     return manipulator;
@@ -131,7 +131,7 @@ function createLayerBinding(
             key_code: key,
         },
         to: normalizeOutput(output),
-        conditions: [variableIf(layerVariable, 1)],
+        conditions: [variableIs(layerVariable, 1)],
     };
 }
 
@@ -160,6 +160,20 @@ function toLayerVariableName(value: string): string {
     return value.replaceAll(/[^a-zA-Z0-9_]/g, "_");
 }
 
+function validateLayerName(name: string): void {
+    if (!name.trim()) {
+        throw new Error("Layer name must be a non-empty string.");
+    }
+
+    const layerVariableName = toLayerVariableName(name);
+
+    if (!layerVariableName.replaceAll("_", "")) {
+        throw new Error(
+            `Layer name "${name}" must include at least one letter or number.`,
+        );
+    }
+}
+
 function isLayerDefinition(binding: Binding): binding is LayerDefinition {
     return (
         typeof binding === "object" &&
@@ -167,18 +181,4 @@ function isLayerDefinition(binding: Binding): binding is LayerDefinition {
         "kind" in binding &&
         binding.kind === "layer"
     );
-}
-
-function validateLayerName(name: string): void {
-    if (!name.trim()) {
-        throw new Error("Layer name must be a non-empty string.");
-    }
-
-    const variableName = toLayerVariableName(name);
-
-    if (!variableName.replaceAll("_", "")) {
-        throw new Error(
-            `Layer name "${name}" must include at least one letter or number.`,
-        );
-    }
 }

@@ -11,7 +11,7 @@ export const config: KarabinerConfig = setup({
             rules: [
                 rule("Layer tests", [
                     layer("caps_lock", {
-                        alone: key("escape"),
+                        tapped: key("escape"),
 
                         bindings: {
                             g: app("Ghostty"),
