@@ -1,5 +1,6 @@
 import {
     bind,
+    bundleIdPattern,
     eventChanged,
     exceptEventChanged,
     exceptExpressionIsTrue,
@@ -30,114 +31,112 @@ const moonlander = {
     is_keyboard: true,
 };
 
+const fakeKeyboard = {
+    vendor_id: 0,
+    product_id: 0,
+    is_keyboard: true,
+};
+
 export const config: KarabinerConfig = setup({
     profiles: [
-        profile({
-            name: "Condition Test",
-            selected: true,
-            virtual_hid_keyboard: { keyboard_type_v2: "ansi" },
-            rules: [
-                rule("Condition helper tests", [
-                    bind("f10", key("escape"), {
-                        description: "Test variable conditions",
-                        conditions: [
-                            variableIs("condition_test_enabled", 1),
-                            exceptVariableIs("condition_test_disabled", 1),
-                        ],
-                    }),
+        profile(
+            {
+                name: "Condition Test",
+                selected: true,
+                virtual_hid_keyboard: { keyboard_type_v2: "ansi" },
+            },
 
-                    bind("f11", key("escape"), {
-                        description: "Test frontmost application conditions",
-                        conditions: [
-                            inApp([
-                                "^com\\.apple\\.finder$",
-                                "^com\\.mitchellh\\.ghostty$",
-                            ]),
-                            exceptInApp(["^com\\.apple\\.SystemSettings$"]),
-                        ],
-                    }),
+            rule(
+                "Condition helper tests",
 
-                    bind("f12", key("escape"), {
-                        description: "Test device source conditions",
-                        conditions: [
-                            fromDevice([moonlander]),
-                            exceptFromDevice([
-                                {
-                                    vendor_id: 0,
-                                    product_id: 0,
-                                    is_keyboard: true,
-                                },
-                            ]),
-                        ],
-                    }),
+                bind("f10", key("escape"), {
+                    description: "Test variable conditions",
+                    conditions: [
+                        variableIs("condition_test_enabled", 1),
+                        exceptVariableIs("condition_test_disabled", 1),
+                    ],
+                }),
 
-                    bind("f10", key("tab"), {
-                        description: "Test connected device conditions",
-                        modifiers: {
-                            mandatory: ["left_shift"],
-                        },
-                        conditions: [
-                            withDeviceConnected([moonlander]),
-                            exceptWithDeviceConnected([
-                                {
-                                    vendor_id: 0,
-                                    product_id: 0,
-                                    is_keyboard: true,
-                                },
-                            ]),
-                        ],
-                    }),
+                bind("f11", key("escape"), {
+                    description: "Test frontmost application conditions",
+                    conditions: [
+                        inApp("com.apple.finder", "com.mitchellh.ghostty"),
+                        exceptInApp("com.apple.SystemSettings"),
+                    ],
+                }),
 
-                    bind("f11", key("tab"), {
-                        description: "Test keyboard type conditions",
-                        modifiers: {
-                            mandatory: ["left_shift"],
-                        },
-                        conditions: [
-                            fromKeyboardType(["ansi"]),
-                            exceptFromKeyboardType(["jis"]),
-                        ],
-                    }),
+                bind("f12", key("escape"), {
+                    description: "Test frontmost application regex condition",
+                    modifiers: {
+                        mandatory: ["left_option"],
+                    },
+                    conditions: [inApp(bundleIdPattern("^com\\.avid\\..*$"))],
+                }),
 
-                    bind("f12", key("tab"), {
-                        description: "Test input source conditions",
-                        modifiers: {
-                            mandatory: ["left_shift"],
-                        },
-                        conditions: [
-                            fromInputSource([
-                                {
-                                    language: "en",
-                                },
-                            ]),
-                            exceptFromInputSource([
-                                {
-                                    language: "ja",
-                                },
-                            ]),
-                        ],
-                    }),
+                bind("f12", key("escape"), {
+                    description: "Test device conditions",
+                    conditions: [
+                        fromDevice(moonlander),
+                        exceptFromDevice(fakeKeyboard),
+                    ],
+                }),
 
-                    bind("f10", key("spacebar"), {
-                        description: "Test expression conditions",
-                        modifiers: {
-                            mandatory: ["left_control"],
-                        },
-                        conditions: [
-                            expressionIsTrue("1 == 1"),
-                            exceptExpressionIsTrue("1 == 0"),
-                        ],
-                    }),
+                bind("f10", key("tab"), {
+                    description: "Test connected device conditions",
+                    modifiers: {
+                        mandatory: ["left_shift"],
+                    },
+                    conditions: [
+                        withDeviceConnected(moonlander),
+                        exceptWithDeviceConnected(fakeKeyboard),
+                    ],
+                }),
 
-                    bind("f11", key("spacebar"), {
-                        description: "Test event changed conditions",
-                        modifiers: {
-                            mandatory: ["left_control"],
-                        },
-                        conditions: [eventChanged(), exceptEventChanged(false)],
-                    }),
-                ]),
-            ],
-        }),
+                bind("f11", key("tab"), {
+                    description: "Test keyboard type conditions",
+                    modifiers: {
+                        mandatory: ["left_shift"],
+                    },
+                    conditions: [
+                        fromKeyboardType("ansi"),
+                        exceptFromKeyboardType("jis"),
+                    ],
+                }),
+
+                bind("f12", key("tab"), {
+                    description: "Test input source conditions",
+                    modifiers: {
+                        mandatory: ["left_shift"],
+                    },
+                    conditions: [
+                        fromInputSource({
+                            language: "en",
+                        }),
+                        exceptFromInputSource({
+                            language: "ja",
+                        }),
+                    ],
+                }),
+
+                bind("f10", key("spacebar"), {
+                    description: "Test expression conditions",
+                    modifiers: {
+                        mandatory: ["left_control"],
+                    },
+                    conditions: [
+                        expressionIsTrue("1 == 1"),
+                        exceptExpressionIsTrue("1 == 0"),
+                    ],
+                }),
+
+                bind("f11", key("spacebar"), {
+                    description: "Test event changed conditions",
+                    modifiers: {
+                        mandatory: ["left_control"],
+                    },
+                    conditions: [eventChanged(), exceptEventChanged(false)],
+                }),
+            ),
+        ),
     ],
 });

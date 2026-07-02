@@ -1,33 +1,41 @@
 import type { Condition, DeviceIdentifier } from "../../karabiner";
 
-export function fromDevice(identifiers: DeviceIdentifier[]): Condition {
+export function fromDevice(
+    identifier: DeviceIdentifier,
+    ...identifiers: DeviceIdentifier[]
+): Condition {
     return {
         type: "device_if",
-        identifiers,
+        identifiers: [identifier, ...identifiers],
     };
 }
 
-export function exceptFromDevice(identifiers: DeviceIdentifier[]): Condition {
+export function exceptFromDevice(
+    identifier: DeviceIdentifier,
+    ...identifiers: DeviceIdentifier[]
+): Condition {
     return {
         type: "device_unless",
-        identifiers,
+        identifiers: [identifier, ...identifiers],
     };
 }
 
 export function withDeviceConnected(
-    identifiers: DeviceIdentifier[],
+    identifier: DeviceIdentifier,
+    ...identifiers: DeviceIdentifier[]
 ): Condition {
     return {
         type: "device_exists_if",
-        identifiers,
+        identifiers: [identifier, ...identifiers],
     };
 }
 
 export function exceptWithDeviceConnected(
-    identifiers: DeviceIdentifier[],
+    identifier: DeviceIdentifier,
+    ...identifiers: DeviceIdentifier[]
 ): Condition {
     return {
         type: "device_exists_unless",
-        identifiers,
+        identifiers: [identifier, ...identifiers],
     };
 }

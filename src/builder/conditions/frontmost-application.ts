@@ -1,15 +1,23 @@
 import type { Condition } from "../../karabiner";
 
-export function inApp(bundleIdentifiers: string[]): Condition {
+import { normalizeBundleIds, type BundleIdInput } from "./bundle-id";
+
+export function inApp(
+    bundleId: BundleIdInput,
+    ...bundleIds: BundleIdInput[]
+): Condition {
     return {
         type: "frontmost_application_if",
-        bundle_identifiers: bundleIdentifiers,
+        bundle_identifiers: normalizeBundleIds([bundleId, ...bundleIds]),
     };
 }
 
-export function exceptInApp(bundleIdentifiers: string[]): Condition {
+export function exceptInApp(
+    bundleId: BundleIdInput,
+    ...bundleIds: BundleIdInput[]
+): Condition {
     return {
         type: "frontmost_application_unless",
-        bundle_identifiers: bundleIdentifiers,
+        bundle_identifiers: normalizeBundleIds([bundleId, ...bundleIds]),
     };
 }
