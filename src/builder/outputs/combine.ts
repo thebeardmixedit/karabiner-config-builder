@@ -1,5 +1,5 @@
 import type { To } from "../../karabiner";
 
-export function combine(...commands: To[]): To[] {
-    return commands;
+export function combine(command: To, ...commands: To[]): To[] {
+    return [command, ...commands];
 }
