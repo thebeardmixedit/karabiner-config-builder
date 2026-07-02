@@ -65,7 +65,7 @@ brew install fzf
 - Configurable output path with `--out`
 - Deploy command for writing to Karabiner's config location
 - Optional symlink deploy mode
-- Backup and restore helpers for the active Karabiner config
+- Symlink-aware backup and restore helpers for the active Karabiner config
 - Test configs for live/manual feature testing
 - Builder helpers:
     - `setup()`
@@ -81,22 +81,22 @@ brew install fzf
     - `url()`
     - `combine()`
 - Condition helpers:
-    - `variableIf()`
-    - `variableUnless()`
-    - `frontmostApplicationIf()`
-    - `frontmostApplicationUnless()`
-    - `deviceIf()`
-    - `deviceUnless()`
-    - `deviceExistsIf()`
-    - `deviceExistsUnless()`
-    - `keyboardTypeIf()`
-    - `keyboardTypeUnless()`
-    - `inputSourceIf()`
-    - `inputSourceUnless()`
-    - `expressionIf()`
-    - `expressionUnless()`
-    - `eventChangedIf()`
-    - `eventChangedUnless()`
+    - `inApp()`
+    - `exceptInApp()`
+    - `fromDevice()`
+    - `exceptFromDevice()`
+    - `withDeviceConnected()`
+    - `exceptWithDeviceConnected()`
+    - `fromKeyboardType()`
+    - `exceptFromKeyboardType()`
+    - `fromInputSource()`
+    - `exceptFromInputSource()`
+    - `variableIs()`
+    - `exceptVariableIs()`
+    - `expressionIsTrue()`
+    - `exceptExpressionIsTrue()`
+    - `eventChanged()`
+    - `exceptEventChanged()`
 - Integration helpers:
     - `aerospace()`
     - `soundflow()`
@@ -176,6 +176,98 @@ export const config: KarabinerConfig = setup({
                 rule("Global bindings", [
                     bind("f10", key("escape"), {
                         description: "F10 to Escape",
+                    }),
+                ]),
+            ],
+        }),
+    ],
+});
+```
+
+## Example layer
+
+```ts
+import {
+    app,
+    key,
+    layer,
+    profile,
+    rule,
+    setup,
+} from "karabiner-config-builder";
+
+export const config = setup({
+    profiles: [
+        profile({
+            name: "Main",
+            selected: true,
+            virtual_hid_keyboard: {
+                keyboard_type_v2: "ansi",
+            },
+            rules: [
+                rule("Global layers", [
+                    layer("caps_lock", {
+                        tapped: key("escape"),
+
+                        bindings: {
+                            g: app("Ghostty"),
+
+                            o: layer("open", {
+                                bindings: {
+                                    c: app("ChatGPT"),
+                                },
+                            }),
+                        },
+                    }),
+                ]),
+            ],
+        }),
+    ],
+});
+```
+
+## Example conditions
+
+```ts
+import {
+    bind,
+    exceptInApp,
+    fromDevice,
+    inApp,
+    key,
+    profile,
+    rule,
+    setup,
+} from "karabiner-config-builder";
+
+const moonlander = {
+    vendor_id: 12951,
+    product_id: 6519,
+    is_keyboard: true,
+};
+
+export const config = setup({
+    profiles: [
+        profile({
+            name: "Main",
+            selected: true,
+            virtual_hid_keyboard: {
+                keyboard_type_v2: "ansi",
+            },
+            rules: [
+                rule("Conditional bindings", [
+                    bind("f10", key("escape"), {
+                        description: "F10 to Escape from Moonlander",
+                        conditions: [fromDevice([moonlander])],
+                    }),
+
+                    bind("f11", key("escape"), {
+                        description:
+                            "F11 to Escape in Finder, except System Settings",
+                        conditions: [
+                            inApp(["^com\\.apple\\.finder$"]),
+                            exceptInApp(["^com\\.apple\\.SystemSettings$"]),
+                        ],
                     }),
                 ]),
             ],
@@ -278,6 +370,15 @@ Backups are written to:
 ~/.config/karabiner/kcb_backups/
 ```
 
+Backups are stored as timestamped directories:
+
+```txt
+~/.config/karabiner/kcb_backups/
+  20260702-021500/
+    metadata.json
+    karabiner.json
+```
+
 Restore the latest backup:
 
 ```sh
@@ -292,14 +393,7 @@ npm run restore:search
 
 Backup and restore preserve whether the active Karabiner config is a regular file or a symlink.
 
-Backups are stored as timestamped directories:
-
-```txt
-~/.config/karabiner/kcb_backups/
-  20260702-021500/
-    metadata.json
-    karabiner.json
-```
+When restoring a symlink backup, the active Karabiner config symlink is recreated. If the original symlink target already exists, its contents are preserved. If the target is missing, it is recreated from the backup contents.
 
 ## Test configs
 
