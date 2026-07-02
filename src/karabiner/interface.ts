@@ -80,7 +80,6 @@ export interface SimpleModificationTo {
     key_code?: KeyCode;
     consumer_key_code?: ConsumerKeyCode;
     pointing_button?: PointingButton;
-    shell_command?: string;
 }
 
 // -----------------------------------------------------------------------------

@@ -53,7 +53,7 @@ function validateSimpleModification(
     }
 
     for (const [toIndex, to] of simpleModification.to.entries()) {
-        validateTo(to, `${path}.to[${toIndex}]`);
+        validateSimpleModificationTo(to, `${path}.to[${toIndex}]`);
     }
 }
 
@@ -141,5 +141,21 @@ function validateTo(output: To, path: string): void {
 
     if (!hasOutput) {
         throw new Error(`${path} must include at least one output action.`);
+    }
+}
+
+function validateSimpleModificationTo(
+    to: SimpleModification["to"][number],
+    path: string,
+): void {
+    const hasOutput =
+        to.key_code !== undefined ||
+        to.consumer_key_code !== undefined ||
+        to.pointing_button !== undefined;
+
+    if (!hasOutput) {
+        throw new Error(
+            `${path} must include key_code, consumer_key_code, or pointing_button.`,
+        );
     }
 }
