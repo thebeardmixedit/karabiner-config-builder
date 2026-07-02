@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+config_file="${HOME}/.config/karabiner/karabiner.json"
+backup_dir="${HOME}/.config/karabiner/kcb_backups"
+
+usage() {
+    cat <<EOF
+Usage:
+  karabiner-restore
+  karabiner-restore <backup-file>
+  karabiner-restore -s
+  karabiner-restore --search
+
+Options:
+  -s, --search   Choose a backup with fzf
+  -h, --help     Show this help
+EOF
+}
+
+latest_backup() {
+    find "${backup_dir}" -type f -name "karabiner.*.json" | sort -r | head -n 1
+}
+
+search_backup() {
+    if ! command -v fzf >/dev/null 2>&1; then
+        echo "fzf is required for --search but was not found." >&2
+        exit 1
+    fi
+
+    find "${backup_dir}" -type f -name "karabiner.*.json" | sort -r | fzf --prompt="Karabiner backup> "
+}
+
+restore_backup() {
+    local backup_file="$1"
+
+    if [[ -z "${backup_file}" ]]; then
+        echo "No backup selected." >&2
+        exit 1
+    fi
+
+    if [[ ! -f "${backup_file}" ]]; then
+        echo "Backup not found: ${backup_file}" >&2
+        exit 1
+    fi
+
+    mkdir -p "$(dirname "${config_file}")"
+
+    cat "${backup_file}" >"${config_file}"
+
+    echo "Restored Karabiner config from:"
+    echo "${backup_file}"
+}
+
+backup_file=""
+
+case "${1:-}" in
+-h | --help)
+    usage
+    exit 0
+    ;;
+-s | --search)
+    backup_file="$(search_backup)"
+    ;;
+"")
+    backup_file="$(latest_backup)"
+    ;;
+*)
+    backup_file="$1"
+    ;;
+esac
+
+restore_backup "${backup_file}"

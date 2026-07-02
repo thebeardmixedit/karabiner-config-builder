@@ -1,10 +1,15 @@
-import type { Condition, Manipulator, To } from "../karabiner";
+import type { Condition, FromModifiers, Manipulator, To } from "../karabiner";
 
 type Output = To | To[];
 
 interface BindOptions {
-    conditions?: Condition[];
     description?: string;
+    modifiers?: FromModifiers;
+    conditions?: Condition[];
+
+    tapped?: Output;
+    held?: Output;
+    finished?: Output;
 }
 
 export function bind(
@@ -16,6 +21,7 @@ export function bind(
         type: "basic",
         from: {
             key_code: from,
+            ...(options.modifiers ? { modifiers: options.modifiers } : {}),
         },
         to: normalizeOutput(to),
     };
@@ -26,6 +32,18 @@ export function bind(
 
     if (options.conditions) {
         manipulator.conditions = options.conditions;
+    }
+
+    if (options.tapped) {
+        manipulator.to_if_alone = normalizeOutput(options.tapped);
+    }
+
+    if (options.held) {
+        manipulator.to_if_held_down = normalizeOutput(options.held);
+    }
+
+    if (options.finished) {
+        manipulator.to_after_key_up = normalizeOutput(options.finished);
     }
 
     return manipulator;
