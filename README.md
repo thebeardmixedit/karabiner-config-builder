@@ -76,7 +76,8 @@ brew install fzf
     - `layer()`
 - Output helpers:
     - `key()`
-    - `shell()`
+    - `shell()` for raw shell commands
+    - `script()` for wrapped script execution
     - `app()` for opening apps by bundle identifier
     - `url()`
     - `combine()`
@@ -130,28 +131,26 @@ A config file should export either `config` or a default config.
 ```ts
 import { bind, key, profile, rule, setup } from "karabiner-config-builder";
 
-export const config = setup({
-    profiles: [
-        profile(
-            {
-                name: "Main",
-                selected: true,
-                virtual_hid_keyboard: {
-                    keyboard_type_v2: "ansi",
-                },
+export const config = setup(
+    profile(
+        {
+            name: "Main",
+            selected: true,
+            virtual_hid_keyboard: {
+                keyboard_type_v2: "ansi",
             },
+        },
 
-            rule(
-                "Global bindings",
+        rule(
+            "Global bindings",
 
-                bind("caps_lock", key("left_control"), {
-                    description: "Caps Lock as Control, Escape when tapped",
-                    tapped: key("escape"),
-                }),
-            ),
+            bind("caps_lock", key("left_control"), {
+                description: "Caps Lock as Control, Escape when tapped",
+                tapped: key("escape"),
+            }),
         ),
-    ],
-});
+    ),
+);
 ```
 
 During local development of this repository, a config outside the repo can import from the local source tree instead:
@@ -167,23 +166,67 @@ import {
 
 import type { KarabinerConfig } from "path/to/repo/directory/karabiner-config-builder/src/karabiner";
 
-export const config: KarabinerConfig = setup({
+export const config: KarabinerConfig = setup(
+    profile(
+        {
+            name: "Main",
+            selected: true,
+            virtual_hid_keyboard: {
+                keyboard_type_v2: "ansi",
+            },
+        },
+
+        rule(
+            "Global bindings",
+
+            bind("f10", key("escape"), {
+                description: "F10 to Escape",
+            }),
+        ),
+    ),
+);
+```
+
+## Setup styles
+
+For a profile-only config, pass profiles directly:
+
+```ts
+setup(
+    profile(
+        {
+            name: "Main",
+            selected: true,
+        },
+
+        rule(
+            "Global bindings",
+
+            bind("f10", key("escape")),
+        ),
+    ),
+);
+```
+
+For root-level Karabiner options, use the full object form:
+
+```ts
+setup({
+    global: {
+        show_in_menu_bar: false,
+    },
+
     profiles: [
         profile(
             {
                 name: "Main",
                 selected: true,
-                virtual_hid_keyboard: {
-                    keyboard_type_v2: "ansi",
-                },
             },
 
             rule(
                 "Global bindings",
 
-                bind("f10", key("escape"), {
-                    description: "F10 to Escape",
-                }),
+                bind("f10", key("escape")),
             ),
         ),
     ],
@@ -222,6 +265,54 @@ osascript -e 'id of app "ChatGPT"'
 osascript -e 'id of app "Pro Tools"'
 ```
 
+## Running shell commands and scripts
+
+Use `shell()` when you want to emit a raw Karabiner shell command exactly as written:
+
+```ts
+shell('osascript -e \'display notification "pressed" with title "KCB"\'');
+```
+
+Use `script()` when you want to run a local utility or script with a more predictable Karabiner-safe shell environment:
+
+```ts
+script("~/.dotfiles/bin/convert-wav-to-mp3", {
+    shell: "zsh",
+    PATH: ["~/.dotfiles/bin"],
+    requires: ["lame", "osascript"],
+});
+```
+
+`script()` wraps the command with:
+
+- a selected shell, currently `"zsh"` or `"bash"`
+- a stable `PATH` including common macOS and Homebrew locations
+- optional extra `PATH` entries through `PATH`
+- optional dependency checks through `requires`
+- support for `~` paths via `$HOME`
+
+The `PATH` entries are prepended before the default search paths:
+
+```txt
+/opt/homebrew/bin
+/usr/local/bin
+/usr/bin
+/bin
+/usr/sbin
+/sbin
+```
+
+Use `args` to pass arguments to the script:
+
+```ts
+script("~/.dotfiles/bin/convert-wav-to-mp3", {
+    shell: "zsh",
+    PATH: ["~/.dotfiles/bin"],
+    requires: ["lame"],
+    args: ["~/Desktop/example.wav"],
+});
+```
+
 ## Example layer
 
 ```ts
@@ -234,34 +325,74 @@ import {
     setup,
 } from "karabiner-config-builder";
 
+export const config = setup(
+    profile(
+        {
+            name: "Main",
+            selected: true,
+            virtual_hid_keyboard: {
+                keyboard_type_v2: "ansi",
+            },
+        },
+
+        rule(
+            "Global layers",
+
+            layer("caps_lock", {
+                tapped: key("escape"),
+
+                bindings: {
+                    g: app("com.mitchellh.ghostty"),
+
+                    o: layer("open", {
+                        bindings: {
+                            c: app("com.openai.chat"),
+                            f: app("com.apple.finder"),
+                        },
+                    }),
+                },
+            }),
+        ),
+    ),
+);
+```
+
+## Example scripts
+
+```ts
+import { bind, profile, rule, script, setup } from "karabiner-config-builder";
+
 export const config = setup({
+    global: {
+        show_in_menu_bar: false,
+    },
+
     profiles: [
         profile(
             {
                 name: "Main",
-                selected: true,
                 virtual_hid_keyboard: {
                     keyboard_type_v2: "ansi",
                 },
             },
 
             rule(
-                "Global layers",
+                "macOS Tools",
 
-                layer("caps_lock", {
-                    tapped: key("escape"),
-
-                    bindings: {
-                        g: app("com.mitchellh.ghostty"),
-
-                        o: layer("open", {
-                            bindings: {
-                                c: app("com.openai.chat"),
-                                f: app("com.apple.finder"),
-                            },
-                        }),
+                bind(
+                    "m",
+                    script("~/.dotfiles/bin/convert-wav-to-mp3", {
+                        shell: "zsh",
+                        PATH: ["~/.dotfiles/bin"],
+                        requires: ["lame", "osascript"],
+                    }),
+                    {
+                        description: "Convert selected WAV files to MP3",
+                        modifiers: {
+                            mandatory: ["left_control"],
+                        },
                     },
-                }),
+                ),
             ),
         ),
     ],
@@ -288,37 +419,34 @@ const moonlander = {
     is_keyboard: true,
 };
 
-export const config = setup({
-    profiles: [
-        profile(
-            {
-                name: "Main",
-                selected: true,
-                virtual_hid_keyboard: {
-                    keyboard_type_v2: "ansi",
-                },
+export const config = setup(
+    profile(
+        {
+            name: "Main",
+            selected: true,
+            virtual_hid_keyboard: {
+                keyboard_type_v2: "ansi",
             },
+        },
 
-            rule(
-                "Conditional bindings",
+        rule(
+            "Conditional bindings",
 
-                bind("f10", key("escape"), {
-                    description: "F10 to Escape from Moonlander",
-                    conditions: [fromDevice(moonlander)],
-                }),
+            bind("f10", key("escape"), {
+                description: "F10 to Escape from Moonlander",
+                conditions: [fromDevice(moonlander)],
+            }),
 
-                bind("f11", key("escape"), {
-                    description:
-                        "F11 to Escape in Finder, except System Settings",
-                    conditions: [
-                        inApp("com.apple.finder"),
-                        exceptInApp("com.apple.SystemSettings"),
-                    ],
-                }),
-            ),
+            bind("f11", key("escape"), {
+                description: "F11 to Escape in Finder, except System Settings",
+                conditions: [
+                    inApp("com.apple.finder"),
+                    exceptInApp("com.apple.SystemSettings"),
+                ],
+            }),
         ),
-    ],
-});
+    ),
+);
 ```
 
 App conditions accept plain bundle identifiers. The builder converts them to the regular expression format Karabiner expects.
