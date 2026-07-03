@@ -47,6 +47,19 @@ export const config: KarabinerConfig = setup({
             },
 
             rule(
+                {
+                    description: "Rule-level AND condition tests",
+                    conditions: [inApp("com.apple.finder")],
+                },
+
+                bind("f14", key("escape"), {
+                    description:
+                        "Preserves AND behavior across condition families",
+                    conditions: [fromKeyboardType("ansi")],
+                }),
+            ),
+
+            rule(
                 "Condition helper tests",
 
                 bind("f10", key("escape"), {
