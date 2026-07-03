@@ -7,15 +7,18 @@ import { resolveBackupDir } from "./paths";
 
 interface RestoreCliOptions {
     backupPath?: string;
+    backupDir?: string;
     search?: boolean;
 }
 
 const options = parseRestoreArgs();
-
-const backupPath = options.search ? searchBackup() : options.backupPath;
+const backupPath = options.search
+    ? searchBackup(options.backupDir)
+    : options.backupPath;
 
 const result = restore({
     ...(backupPath ? { backupPath } : {}),
+    ...(options.backupDir ? { backupDir: options.backupDir } : {}),
 });
 
 if (result.metadata.kind === "symlink") {
@@ -55,6 +58,18 @@ function parseRestoreArgs(args = process.argv.slice(2)): RestoreCliOptions {
             continue;
         }
 
+        if (argument === "--backup-dir") {
+            const backupDir = args[index + 1];
+
+            if (!backupDir) {
+                throw new Error(`${argument} requires a directory path.`);
+            }
+
+            options.backupDir = backupDir;
+            index += 1;
+            continue;
+        }
+
         if (argument.startsWith("-")) {
             throw new Error(`Unknown option: ${argument}`);
         }
@@ -73,15 +88,15 @@ function parseRestoreArgs(args = process.argv.slice(2)): RestoreCliOptions {
     return options;
 }
 
-function searchBackup(): string {
+function searchBackup(backupDir?: string): string {
     if (!commandExists("fzf")) {
         throw new Error("fzf is required for --search but was not found.");
     }
 
-    const backupPaths = listBackupPaths();
+    const backupPaths = listBackupPaths(backupDir);
 
     if (backupPaths.length === 0) {
-        throw new Error(`No backups found in: ${resolveBackupDir()}`);
+        throw new Error(`No backups found in: ${resolveBackupDir(backupDir)}`);
     }
 
     const selected = spawnSync("fzf", {
@@ -103,17 +118,17 @@ function searchBackup(): string {
     return backupPath;
 }
 
-function listBackupPaths(): string[] {
-    const backupDir = resolveBackupDir();
+function listBackupPaths(backupDir?: string): string[] {
+    const resolvedBackupDir = resolveBackupDir(backupDir);
 
-    if (!fs.existsSync(backupDir)) {
+    if (!fs.existsSync(resolvedBackupDir)) {
         return [];
     }
 
     return fs
-        .readdirSync(backupDir, { withFileTypes: true })
+        .readdirSync(resolvedBackupDir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
-        .map((entry) => path.join(backupDir, entry.name))
+        .map((entry) => path.join(resolvedBackupDir, entry.name))
         .sort()
         .reverse();
 }
@@ -129,11 +144,14 @@ function commandExists(command: string): boolean {
 function printHelp(): void {
     console.log(`Usage:
   restore
-  restore <backup-directory>
+  restore <backup-path>
   restore -s
   restore --search
+  restore --backup-dir <path>
+  restore --backup-dir <path> --search
 
 Options:
-  -s, --search   Choose a backup with fzf
-  -h, --help     Show this help`);
+  -s, --search         Choose a backup with fzf
+  --backup-dir <path>  Directory where backup folders are stored
+  -h, --help           Show this help`);
 }

@@ -100,6 +100,12 @@ Backups are stored in:
 ~/.config/karabiner/kcb_backups
 ```
 
+Use a custom backup directory:
+
+```sh
+npm run backup -- --backup-dir ~/.dotfiles/backups/karabiner
+```
+
 Backups preserve whether the active config was a regular file or a symlink.
 
 ## Restore
@@ -110,16 +116,28 @@ Restore from the latest backup:
 npm run restore
 ```
 
+Restore from the latest backup in a custom backup directory:
+
+```sh
+npm run restore -- --backup-dir ~/.dotfiles/backups/karabiner
+```
+
 Search available backups:
 
 ```sh
 npm run restore:search
 ```
 
-Restore a specific backup:
+Search available backups in a custom backup directory:
 
 ```sh
-npm run restore -- --backup ~/.config/karabiner/kcb_backups/<backup-name>
+npm run restore:search -- --backup-dir ~/.dotfiles/backups/karabiner
+```
+
+Restore a specific backup path:
+
+```sh
+npm run restore -- ~/.config/karabiner/kcb_backups/<backup-name>
 ```
 
 If the backup was a symlink, restore recreates the symlink.
