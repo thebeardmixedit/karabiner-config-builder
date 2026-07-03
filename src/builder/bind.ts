@@ -1,6 +1,15 @@
-import type { Condition, FromModifiers, Manipulator, To } from "../karabiner";
+import type {
+    Condition,
+    FromModifiers,
+    KeyCode,
+    Manipulator,
+    To,
+} from "../karabiner";
+
+import { isKeyCombo, type KeyCombo } from "./combo";
 
 type Output = To | To[];
+type BindFrom = KeyCode | KeyCombo;
 
 interface BindOptions {
     description?: string;
@@ -12,17 +21,19 @@ interface BindOptions {
     finished?: Output;
 }
 
+interface BindFromKey {
+    key_code: KeyCode;
+    modifiers?: FromModifiers;
+}
+
 export function bind(
-    from: string,
+    from: BindFrom,
     to: Output,
     options: BindOptions = {},
 ): Manipulator {
     const manipulator: Manipulator = {
         type: "basic",
-        from: {
-            key_code: from,
-            ...(options.modifiers ? { modifiers: options.modifiers } : {}),
-        },
+        from: createFrom(from, options),
         to: normalizeOutput(to),
     };
 
@@ -47,6 +58,31 @@ export function bind(
     }
 
     return manipulator;
+}
+
+function createFrom(from: BindFrom, options: BindOptions): BindFromKey {
+    if (!isKeyCombo(from)) {
+        const result: BindFromKey = {
+            key_code: from,
+        };
+
+        if (options.modifiers) {
+            result.modifiers = options.modifiers;
+        }
+
+        return result;
+    }
+
+    if (options.modifiers) {
+        throw new Error(
+            "bind() received modifiers in both the key combo and options.modifiers. Use combo helpers or options.modifiers, not both.",
+        );
+    }
+
+    return {
+        key_code: from.key_code,
+        modifiers: from.modifiers,
+    };
 }
 
 function normalizeOutput(output: Output): To[] {

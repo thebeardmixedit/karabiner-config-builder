@@ -1,4 +1,14 @@
-import { bind, key, profile, rule, setup, shell } from "../src/builder";
+import {
+    bind,
+    key,
+    profile,
+    rule,
+    setup,
+    shell,
+    cmd,
+    shift,
+    leftCtrl,
+} from "../src/builder";
 
 import type { KarabinerConfig } from "../src/karabiner";
 
@@ -10,6 +20,17 @@ export const config: KarabinerConfig = setup({
             virtual_hid_keyboard: { keyboard_type_v2: "ansi" },
             rules: [
                 rule("Bind lifecycle tests", [
+                    bind(cmd("spacebar"), key("spacebar"), {
+                        description: "Generic command combo test",
+                    }),
+
+                    bind(shift(cmd("p")), key("escape"), {
+                        description: "Nested combo test",
+                    }),
+
+                    bind(leftCtrl("m"), key("mute"), {
+                        description: "Side-specific modifier combo test",
+                    }),
                     bind("f10", key("escape"), {
                         description: "F10 to Escape",
                     }),
