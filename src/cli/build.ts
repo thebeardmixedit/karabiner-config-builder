@@ -29,6 +29,11 @@ export async function runBuildCommand(
         ...(outPath ? { outPath } : {}),
     });
 
+    if (!result.outputPath) {
+        process.stdout.write(result.json);
+        return;
+    }
+
     console.log(`Built Karabiner config from: ${result.configPath}`);
     console.log(`Wrote Karabiner config to: ${result.outputPath}`);
 }

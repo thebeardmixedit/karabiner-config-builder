@@ -1,22 +1,14 @@
 #!/usr/bin/env node
 
-import { getPositional, hasFlag, parseArgs } from "./args.js";
 import { runBuildCommand } from "./build.js";
 import { runPrefsCommand } from "./prefs.js";
 
-const rawArgs = process.argv.slice(2);
-const args = parseArgs(rawArgs, {
-    flags: ["h", "help"],
-});
+const [command, ...commandArgs] = process.argv.slice(2);
 
-const command = getPositional(args, 0);
-
-if (!command || hasFlag(args, "help", "h")) {
+if (!command || command === "-h" || command === "--help") {
     printHelp();
     process.exit(0);
 }
-
-const commandArgs = rawArgs.slice(1);
 
 switch (command) {
     case "build":
@@ -36,7 +28,7 @@ function printHelp(): void {
   kcb <command> [options]
 
 Commands:
-  build     Generate karabiner.json
+  build     Generate Karabiner JSON
   deploy    Generate and deploy Karabiner config
   backup    Backup active Karabiner config
   restore   Restore a Karabiner config backup

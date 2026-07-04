@@ -59,8 +59,8 @@ export function resolveConfigPath(configPath?: string): string {
     return resolvePath(configPath ?? DEFAULT_CONFIG_PATH);
 }
 
-export function resolveOutputPath(outputPath?: string): string {
-    return resolvePath(outputPath ?? createDefaultBuildOutputPath());
+export function resolveOutputPath(outputPath: string): string {
+    return resolvePath(outputPath);
 }
 
 export function resolveKarabinerConfigPath(configPath?: string): string {
