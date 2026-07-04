@@ -1,6 +1,6 @@
-import type { Condition, Manipulator, Rule } from "../karabiner";
-import { compileLayer, type LayerDefinition } from "./layer";
-import { mergeConditions } from "./utils";
+import type { Condition, Manipulator, Rule } from "../karabiner/index.js";
+import { compileLayer, type LayerDefinition } from "./layer.js";
+import { mergeConditions } from "./utils/index.js";
 
 export type RuleEntry = Manipulator | LayerDefinition;
 

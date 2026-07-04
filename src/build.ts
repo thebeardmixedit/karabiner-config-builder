@@ -1,7 +1,7 @@
-import { resolveConfigPath, resolveOutputPath } from "./cli/paths";
-import { validateKarabinerConfig } from "./karabiner";
-import { loadConfig } from "./load";
-import { writeKarabinerConfig } from "./write";
+import { resolveConfigPath, resolveOutputPath } from "./cli/paths.js";
+import { validateKarabinerConfig } from "./karabiner/index.js";
+import { loadConfig } from "./load.js";
+import { writeKarabinerConfig } from "./write.js";
 
 interface BuildOptions {
     configPath?: string;

@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 
-import type { KarabinerConfig } from "./karabiner";
+import type { KarabinerConfig } from "./karabiner/index.js";
 
 interface ConfigModule {
     config?: KarabinerConfig;

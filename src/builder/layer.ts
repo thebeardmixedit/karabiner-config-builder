@@ -1,5 +1,5 @@
-import type { Manipulator, To } from "../karabiner";
-import { variableIs } from "./conditions";
+import type { Manipulator, To } from "../karabiner/index.js";
+import { variableIs } from "./conditions/index.js";
 
 export type Output = To | To[];
 

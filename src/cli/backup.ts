@@ -1,4 +1,4 @@
-import { backup } from "../backup";
+import { backup } from "../backup.js";
 
 interface BackupCliOptions {
     backupDir?: string;

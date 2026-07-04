@@ -1,4 +1,5 @@
 import {
+    type KarabinerConfig,
     bind,
     bundleIdPattern,
     eventChanged,
@@ -21,9 +22,7 @@ import {
     setup,
     variableIs,
     withDeviceConnected,
-} from "../src/builder";
-
-import type { KarabinerConfig } from "../src/karabiner";
+} from "../dist/index.js";
 
 const moonlander = {
     vendor_id: 12951,

@@ -2,8 +2,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-import { restore } from "../restore";
-import { resolveBackupDir } from "./paths";
+import { restore } from "../restore.js";
+import { resolveBackupDir } from "./paths.js";
 
 interface RestoreCliOptions {
     backupPath?: string;

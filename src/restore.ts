@@ -5,7 +5,7 @@ import {
     resolveBackupDir,
     resolveKarabinerConfigPath,
     resolvePath,
-} from "./cli/paths";
+} from "./cli/paths.js";
 
 interface RestoreOptions {
     backupPath?: string;

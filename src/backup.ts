@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { resolveBackupDir, resolveKarabinerConfigPath } from "./cli/paths";
+import { resolveBackupDir, resolveKarabinerConfigPath } from "./cli/paths.js";
 
 interface BackupOptions {
     karabinerConfigPath?: string;

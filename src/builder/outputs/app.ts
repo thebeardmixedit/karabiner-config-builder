@@ -1,4 +1,4 @@
-import type { To } from "../../karabiner";
+import type { To } from "../../karabiner/index.js";
 
 interface AppOptions {
     frontmost?: boolean;

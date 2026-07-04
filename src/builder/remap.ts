@@ -3,7 +3,7 @@ import type {
     SimpleModification,
     SimpleModificationFrom,
     SimpleModificationTo,
-} from "../karabiner";
+} from "../karabiner/index.js";
 
 type RemapInput = KeyCode | SimpleModificationFrom;
 type RemapOutput = KeyCode | SimpleModificationTo;

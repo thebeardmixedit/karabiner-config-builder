@@ -1,2 +1,2 @@
-export * from "./interface";
-export * from "./validate";
+export * from "./interface.js";
+export * from "./validate.js";

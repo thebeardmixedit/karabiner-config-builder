@@ -1,7 +1,7 @@
-import type { Condition } from "../../karabiner";
+import type { Condition } from "../../karabiner/index.js";
 
-import { createConditionValueKey } from "./value";
-import { validateConditionConflicts } from "./validate";
+import { createConditionValueKey } from "./value.js";
+import { validateConditionConflicts } from "./validate.js";
 
 export function mergeConditions(
     ruleConditions: Condition[],

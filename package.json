@@ -4,6 +4,10 @@
     "private": false,
     "description": "A TypeScript builder for generating karabiner.json.",
     "type": "module",
+    "types": "./dist/index.d.ts",
+    "bin": {
+        "kcb": "./dist/cli/index.js"
+    },
     "scripts": {
         "check": "tsc --noEmit",
         "build": "tsx src/cli/build.ts",
@@ -16,7 +20,9 @@
         "deploy:test:conditions": "tsx src/cli/deploy.ts --config tests/conditions.ts",
         "backup": "tsx src/cli/backup.ts",
         "restore": "tsx src/cli/restore.ts",
-        "restore:search": "tsx src/cli/restore.ts --search"
+        "restore:search": "tsx src/cli/restore.ts --search",
+        "compile": "tsc",
+        "cli": "tsx src/cli/index.ts"
     },
     "keywords": [
         "karabiner",

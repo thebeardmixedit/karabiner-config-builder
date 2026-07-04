@@ -1,4 +1,4 @@
-import type { Condition, KeyboardType } from "../../karabiner";
+import type { Condition, KeyboardType } from "../../karabiner/index.js";
 
 export function fromKeyboardType(
     keyboardType: KeyboardType,

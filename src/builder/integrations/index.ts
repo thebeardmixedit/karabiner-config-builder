@@ -1,2 +1,2 @@
-export * from "./aerospace";
-export * from "./soundflow";
+export * from "./aerospace.js";
+export * from "./soundflow.js";

@@ -1,4 +1,4 @@
-import type { FromModifiers, KeyCode, Modifier } from "../karabiner";
+import type { FromModifiers, KeyCode, Modifier } from "../karabiner/index.js";
 
 export interface KeyCombo {
     kind: "key_combo";

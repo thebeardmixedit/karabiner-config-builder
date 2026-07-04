@@ -7,7 +7,7 @@ import type {
     Rule,
     SimpleModification,
     VirtualHidKeyboard,
-} from "../karabiner";
+} from "../karabiner/index.js";
 
 export interface ProfileOptions {
     name: string;

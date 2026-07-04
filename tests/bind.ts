@@ -1,4 +1,5 @@
 import {
+    type KarabinerConfig,
     bind,
     key,
     profile,
@@ -8,9 +9,7 @@ import {
     cmd,
     shift,
     leftCtrl,
-} from "../src/builder";
-
-import type { KarabinerConfig } from "../src/karabiner";
+} from "../dist/index.js";
 
 export const config: KarabinerConfig = setup({
     profiles: [

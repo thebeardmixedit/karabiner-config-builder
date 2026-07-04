@@ -1,6 +1,6 @@
-import type { To } from "../../karabiner";
+import type { To } from "../../karabiner/index.js";
 
-import { shell } from "./shell";
+import { shell } from "./shell.js";
 
 const DEFAULT_PATH = [
     "/opt/homebrew/bin",

@@ -1,4 +1,4 @@
-import type { Condition, DeviceIdentifier } from "../../karabiner";
+import type { Condition, DeviceIdentifier } from "../../karabiner/index.js";
 
 export function fromDevice(
     identifier: DeviceIdentifier,

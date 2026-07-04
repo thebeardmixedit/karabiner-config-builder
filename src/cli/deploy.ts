@@ -1,40 +1,71 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { build } from "../build";
-import { parseArgs } from "./args";
+import { build } from "../build.js";
+import { assertNoUnknownArgs, getOption, hasFlag, parseArgs } from "./args.js";
 import {
-    DEFAULT_OUTPUT_PATH,
+    DEFAULT_KARABINER_CONFIG_PATH,
     resolveKarabinerConfigPath,
     resolveOutputPath,
     resolvePath,
-} from "./paths";
+} from "./paths.js";
+import { isDirectRun } from "./run.js";
 
-const options = parseArgs();
-
-if (options.outPath && options.symlinkFromPath) {
-    throw new Error("Use either --out or --symlink-from, not both.");
-}
-
-const karabinerConfigPath = resolveKarabinerConfigPath();
-
-if (options.symlinkFromPath) {
-    const symlinkFromPath = resolvePath(options.symlinkFromPath);
-
-    const result = await build({
-        ...(options.configPath ? { configPath: options.configPath } : {}),
-        outPath: symlinkFromPath,
+export async function runDeployCommand(
+    rawArgs = process.argv.slice(2),
+): Promise<void> {
+    const args = parseArgs(rawArgs, {
+        flags: ["h", "help"],
+        options: ["c", "config", "o", "out", "symlink-from"],
     });
 
-    symlinkKarabinerConfig(karabinerConfigPath, symlinkFromPath);
+    if (hasFlag(args, "help", "h")) {
+        printHelp();
+        return;
+    }
 
-    console.log(`Built Karabiner config from: ${result.configPath}`);
-    console.log(`Wrote Karabiner config to: ${result.outputPath}`);
-    console.log("Deployed Karabiner config with symlink:");
-    console.log(`${karabinerConfigPath} -> ${symlinkFromPath}`);
-} else {
+    assertNoUnknownArgs(args, {
+        flags: ["h", "help"],
+        options: ["c", "config", "o", "out", "symlink-from"],
+        positionals: 0,
+    });
+
+    const configPath = getOption(args, "config", "c");
+    const outPath = getOption(args, "out", "o");
+    const symlinkFromPath = getOption(args, "symlink-from");
+
+    if (outPath && symlinkFromPath) {
+        throw new Error("Use either --out or --symlink-from, not both.");
+    }
+
+    const karabinerConfigPath = resolveKarabinerConfigPath();
+
+    if (symlinkFromPath) {
+        await deploySymlink({
+            ...(configPath ? { configPath } : {}),
+            karabinerConfigPath,
+            symlinkFromPath,
+        });
+
+        return;
+    }
+
+    await deployRegular({
+        ...(configPath ? { configPath } : {}),
+        karabinerConfigPath,
+        ...(outPath ? { outPath } : {}),
+    });
+}
+
+interface DeployRegularOptions {
+    configPath?: string;
+    karabinerConfigPath: string;
+    outPath?: string;
+}
+
+async function deployRegular(options: DeployRegularOptions): Promise<void> {
     const outputPath = resolveOutputPath(
-        options.outPath ?? DEFAULT_OUTPUT_PATH,
+        options.outPath ?? DEFAULT_KARABINER_CONFIG_PATH,
     );
 
     const result = await build({
@@ -42,12 +73,34 @@ if (options.symlinkFromPath) {
         outPath: outputPath,
     });
 
-    copyKarabinerConfig(outputPath, karabinerConfigPath);
+    copyKarabinerConfig(outputPath, options.karabinerConfigPath);
 
     console.log(`Built Karabiner config from: ${result.configPath}`);
     console.log(`Wrote Karabiner config to: ${result.outputPath}`);
     console.log("Deployed Karabiner config:");
-    console.log(karabinerConfigPath);
+    console.log(options.karabinerConfigPath);
+}
+
+interface DeploySymlinkOptions {
+    configPath?: string;
+    karabinerConfigPath: string;
+    symlinkFromPath: string;
+}
+
+async function deploySymlink(options: DeploySymlinkOptions): Promise<void> {
+    const symlinkFromPath = resolvePath(options.symlinkFromPath);
+
+    const result = await build({
+        ...(options.configPath ? { configPath: options.configPath } : {}),
+        outPath: symlinkFromPath,
+    });
+
+    symlinkKarabinerConfig(options.karabinerConfigPath, symlinkFromPath);
+
+    console.log(`Built Karabiner config from: ${result.configPath}`);
+    console.log(`Wrote Karabiner config to: ${result.outputPath}`);
+    console.log("Deployed Karabiner config with symlink:");
+    console.log(`${options.karabinerConfigPath} -> ${symlinkFromPath}`);
 }
 
 function copyKarabinerConfig(fromPath: string, toPath: string): void {
@@ -87,4 +140,19 @@ function isSymlink(filePath: string): boolean {
     } catch {
         return false;
     }
+}
+
+function printHelp(): void {
+    console.log(`Usage:
+  kcb deploy [options]
+
+Options:
+  -c, --config <path>       Config file to load
+  -o, --out <path>          Generated config output path before deploy
+  --symlink-from <path>     Generate config here and symlink Karabiner to it
+  -h, --help                Show this help`);
+}
+
+if (isDirectRun(import.meta.url)) {
+    await runDeployCommand();
 }

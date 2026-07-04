@@ -1,4 +1,4 @@
-import type { Condition, InputSource } from "../../karabiner";
+import type { Condition, InputSource } from "../../karabiner/index.js";
 
 export function fromInputSource(
     inputSource: InputSource,

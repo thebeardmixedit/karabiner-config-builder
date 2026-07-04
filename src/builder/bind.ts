@@ -4,9 +4,9 @@ import type {
     KeyCode,
     Manipulator,
     To,
-} from "../karabiner";
+} from "../karabiner/index.js";
 
-import { isKeyCombo, type KeyCombo } from "./combo";
+import { isKeyCombo, type KeyCombo } from "./combo.js";
 
 type Output = To | To[];
 type BindFrom = KeyCode | KeyCombo;

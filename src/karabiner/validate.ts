@@ -6,7 +6,7 @@ import type {
     Rule,
     SimpleModification,
     To,
-} from "./interface";
+} from "./interface.js";
 
 export function validateKarabinerConfig(config: KarabinerConfig): void {
     if (config.profiles.length === 0) {

@@ -1,4 +1,4 @@
-import type { Condition } from "../../karabiner";
+import type { Condition } from "../../karabiner/index.js";
 
 export function eventChanged(value = true): Condition {
     return {

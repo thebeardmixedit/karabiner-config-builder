@@ -1,6 +1,6 @@
-import type { Condition } from "../../karabiner";
+import type { Condition } from "../../karabiner/index.js";
 
-import { createConditionValueKey } from "./value";
+import { createConditionValueKey } from "./value.js";
 
 interface ListConditionInfo {
     family: string;

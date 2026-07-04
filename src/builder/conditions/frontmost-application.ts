@@ -1,6 +1,5 @@
-import type { Condition } from "../../karabiner";
-
-import { normalizeBundleIds, type BundleIdInput } from "./bundle-id";
+import type { Condition } from "../../karabiner/index.js";
+import { normalizeBundleIds, type BundleIdInput } from "./bundle-id.js";
 
 export function inApp(
     bundleId: BundleIdInput,

@@ -1,5 +1,5 @@
-import type { To } from "../../karabiner";
-import { shell } from "../outputs";
+import type { To } from "../../karabiner/index.js";
+import { shell } from "../outputs/index.js";
 
 const DEFAULT_AEROSPACE_BIN = "/opt/homebrew/bin/aerospace";
 

@@ -1,4 +1,8 @@
-import type { GlobalOptions, KarabinerConfig, Profile } from "../karabiner";
+import type {
+    GlobalOptions,
+    KarabinerConfig,
+    Profile,
+} from "../karabiner/index.js";
 
 export interface SetupOptions {
     global?: GlobalOptions;

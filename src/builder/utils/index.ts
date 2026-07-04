@@ -1,3 +1,3 @@
-export * from "./merge";
-export * from "./validate";
-export * from "./value";
+export * from "./merge.js";
+export * from "./validate.js";
+export * from "./value.js";

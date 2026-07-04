@@ -1,6 +1,12 @@
-import { app, key, layer, profile, rule, setup } from "../src/builder";
-
-import type { KarabinerConfig } from "../src/karabiner";
+import {
+    type KarabinerConfig,
+    app,
+    key,
+    layer,
+    profile,
+    rule,
+    setup,
+} from "../dist/index.js";
 
 export const config: KarabinerConfig = setup(
     profile(
