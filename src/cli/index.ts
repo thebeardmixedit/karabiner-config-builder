@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+import { runBackupCommand } from "./backup.js";
 import { runBuildCommand } from "./build.js";
 import { runPrefsCommand } from "./prefs.js";
-import { runBackupCommand } from "./backup.js";
+import { runRestoreCommand } from "./restore.js";
 
 const [command, ...commandArgs] = process.argv.slice(2);
 
@@ -16,12 +17,16 @@ switch (command) {
         await runBuildCommand(commandArgs);
         break;
 
-    case "prefs":
-        runPrefsCommand(commandArgs);
-        break;
-
     case "backup":
         runBackupCommand(commandArgs);
+        break;
+
+    case "restore":
+        await runRestoreCommand(commandArgs);
+        break;
+
+    case "prefs":
+        runPrefsCommand(commandArgs);
         break;
 
     default:
