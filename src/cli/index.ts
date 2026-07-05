@@ -2,6 +2,7 @@
 
 import { runBackupCommand } from "./backup.js";
 import { runBuildCommand } from "./build.js";
+import { runDeployCommand } from "./deploy.js";
 import { runPrefsCommand } from "./prefs.js";
 import { runRestoreCommand } from "./restore.js";
 
@@ -15,6 +16,10 @@ if (!command || command === "-h" || command === "--help") {
 switch (command) {
     case "build":
         await runBuildCommand(commandArgs);
+        break;
+
+    case "deploy":
+        await runDeployCommand(commandArgs);
         break;
 
     case "backup":
