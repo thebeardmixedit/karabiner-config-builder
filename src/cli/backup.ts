@@ -1,65 +1,89 @@
-import { backup } from "../backup.js";
+import { backup, pruneBackups } from "../backup.js";
+import { assertNoUnknownArgs, getOption, hasFlag, parseArgs } from "./args.js";
+import { isDirectRun } from "./run.js";
 
-interface BackupCliOptions {
-    backupDir?: string;
+const DEFAULT_MAX_BACKUPS = 99;
+
+export function runBackupCommand(rawArgs = process.argv.slice(2)): void {
+    const args = parseArgs(rawArgs, {
+        flags: ["h", "help"],
+        options: ["backup-dir", "max-backups"],
+    });
+
+    if (hasFlag(args, "help", "h")) {
+        printHelp();
+        return;
+    }
+
+    assertNoUnknownArgs(args, {
+        flags: ["h", "help"],
+        options: ["backup-dir", "max-backups"],
+        positionals: 0,
+    });
+
+    const backupDir = getOption(args, "backup-dir");
+    const maxBackups = parseMaxBackups(getOption(args, "max-backups"));
+
+    const backupResult = backup({
+        ...(backupDir ? { backupDir } : {}),
+    });
+
+    const pruneResult = pruneBackups({
+        ...(backupDir ? { backupDir } : {}),
+        maxBackups,
+    });
+
+    printBackupResult(backupResult);
+    printPruneResult(pruneResult);
 }
 
-const options = parseBackupArgs();
+function parseMaxBackups(value: string | undefined): number {
+    if (!value) {
+        return DEFAULT_MAX_BACKUPS;
+    }
 
-const result = backup({
-    ...(options.backupDir ? { backupDir: options.backupDir } : {}),
-});
+    const maxBackups = Number(value);
 
-if (result.metadata.kind === "symlink") {
-    console.log("Backed up symlinked Karabiner config:");
-    console.log(`Active: ${result.metadata.activePath}`);
-    console.log(`Target: ${result.metadata.targetPath}`);
-    console.log(`Backup: ${result.backupPath}`);
-} else {
+    if (!Number.isInteger(maxBackups) || maxBackups < 1) {
+        throw new Error("--max-backups must be an integer greater than 0.");
+    }
+
+    return maxBackups;
+}
+
+function printBackupResult(result: ReturnType<typeof backup>): void {
+    if (result.metadata.kind === "symlink") {
+        console.log("Backed up symlinked Karabiner config:");
+        console.log(`Active: ${result.metadata.activePath}`);
+        console.log(`Target: ${result.metadata.targetPath}`);
+        console.log(`Backup: ${result.backupPath}`);
+        return;
+    }
+
     console.log("Backed up Karabiner config:");
     console.log(`Active: ${result.metadata.activePath}`);
     console.log(`Backup: ${result.backupPath}`);
 }
 
-function parseBackupArgs(args = process.argv.slice(2)): BackupCliOptions {
-    const options: BackupCliOptions = {};
-
-    for (let index = 0; index < args.length; index += 1) {
-        const argument = args[index];
-
-        if (!argument) {
-            continue;
-        }
-
-        if (argument === "-h" || argument === "--help") {
-            printHelp();
-            process.exit(0);
-        }
-
-        if (argument === "--backup-dir") {
-            const backupDir = args[index + 1];
-
-            if (!backupDir) {
-                throw new Error(`${argument} requires a directory path.`);
-            }
-
-            options.backupDir = backupDir;
-            index += 1;
-            continue;
-        }
-
-        throw new Error(`Unknown option: ${argument}`);
+function printPruneResult(result: ReturnType<typeof pruneBackups>): void {
+    if (result.removed.length === 0) {
+        console.log(`Pruned backups: 0 removed`);
+        return;
     }
 
-    return options;
+    console.log(`Pruned backups: ${result.removed.length} removed`);
 }
 
 function printHelp(): void {
     console.log(`Usage:
-  backup
-  backup --backup-dir <path>
+  kcb backup [options]
 
 Options:
-  --backup-dir <path>  Directory where backup folders are stored
-  -h, --help           Show this help`);
+  --backup-dir <path>   Directory where backup folders are stored
+  --max-backups <count> Maximum number of backups to keep, default: ${DEFAULT_MAX_BACKUPS}
+  -h, --help            Show this help`);
+}
+
+if (isDirectRun(import.meta.url)) {
+    runBackupCommand();
 }

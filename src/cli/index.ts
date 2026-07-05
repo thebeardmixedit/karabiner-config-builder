@@ -2,6 +2,7 @@
 
 import { runBuildCommand } from "./build.js";
 import { runPrefsCommand } from "./prefs.js";
+import { runBackupCommand } from "./backup.js";
 
 const [command, ...commandArgs] = process.argv.slice(2);
 
@@ -17,6 +18,10 @@ switch (command) {
 
     case "prefs":
         runPrefsCommand(commandArgs);
+        break;
+
+    case "backup":
+        runBackupCommand(commandArgs);
         break;
 
     default:

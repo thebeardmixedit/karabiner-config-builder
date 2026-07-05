@@ -1,18 +1,24 @@
 import os from "node:os";
 import path from "node:path";
 
-export const DEFAULT_CONFIG_PATH = path.join(
+export const DEFAULT_KCB_CONFIG_DIR = path.join(
     os.homedir(),
     ".config",
     "karabiner-config-builder",
+);
+
+export const DEFAULT_CONFIG_PATH = path.join(
+    DEFAULT_KCB_CONFIG_DIR,
     "config.ts",
 );
 
-export const DEFAULT_BUILD_DIR = path.join(
-    os.homedir(),
-    ".config",
-    "karabiner-config-builder",
-    "build",
+export const DEFAULT_BUILD_DIR = path.join(DEFAULT_KCB_CONFIG_DIR, "build");
+
+export const DEFAULT_BACKUP_DIR = path.join(DEFAULT_KCB_CONFIG_DIR, "backups");
+
+export const DEFAULT_PREFS_PATH = path.join(
+    DEFAULT_KCB_CONFIG_DIR,
+    "prefs.json",
 );
 
 export const DEFAULT_KARABINER_CONFIG_PATH = path.join(
@@ -20,20 +26,6 @@ export const DEFAULT_KARABINER_CONFIG_PATH = path.join(
     ".config",
     "karabiner",
     "karabiner.json",
-);
-
-export const DEFAULT_BACKUP_DIR = path.join(
-    os.homedir(),
-    ".config",
-    "karabiner",
-    "kcb_backups",
-);
-
-export const DEFAULT_PREFS_PATH = path.join(
-    os.homedir(),
-    ".config",
-    "karabiner-config-builder",
-    "prefs.json",
 );
 
 export function createDefaultBuildOutputPath(date = new Date()): string {

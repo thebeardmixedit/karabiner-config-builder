@@ -32,6 +32,17 @@ export interface BackupResult {
     metadata: BackupMetadata;
 }
 
+export interface PruneBackupsOptions {
+    backupDir?: string;
+    maxBackups: number;
+}
+
+export interface PruneBackupsResult {
+    backupDir: string;
+    kept: string[];
+    removed: string[];
+}
+
 export function backup(options: BackupOptions = {}): BackupResult {
     const activePath = resolveKarabinerConfigPath(options.karabinerConfigPath);
     const backupDir = resolveBackupDir(options.backupDir);
@@ -54,6 +65,30 @@ export function backup(options: BackupOptions = {}): BackupResult {
         backupFilePath,
         metadataPath,
         metadata,
+    };
+}
+
+export function pruneBackups(options: PruneBackupsOptions): PruneBackupsResult {
+    if (!Number.isInteger(options.maxBackups) || options.maxBackups < 1) {
+        throw new Error("maxBackups must be an integer greater than 0.");
+    }
+
+    const backupDir = resolveBackupDir(options.backupDir);
+    const backupPaths = listBackupPaths(backupDir);
+    const kept = backupPaths.slice(0, options.maxBackups);
+    const removed = backupPaths.slice(options.maxBackups);
+
+    for (const backupPath of removed) {
+        fs.rmSync(backupPath, {
+            recursive: true,
+            force: true,
+        });
+    }
+
+    return {
+        backupDir,
+        kept,
+        removed,
     };
 }
 
@@ -130,4 +165,28 @@ function createTimestamp(): string {
 
 function pad(value: number): string {
     return String(value).padStart(2, "0");
+}
+
+function listBackupPaths(backupDir: string): string[] {
+    if (!fs.existsSync(backupDir)) {
+        return [];
+    }
+
+    return fs
+        .readdirSync(backupDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(backupDir, entry.name))
+        .filter(isBackupDirectory)
+        .sort(compareBackupPathsNewestFirst);
+}
+
+function isBackupDirectory(backupPath: string): boolean {
+    const metadataPath = path.join(backupPath, "metadata.json");
+    const backupFilePath = path.join(backupPath, "karabiner.json");
+
+    return fs.existsSync(metadataPath) && fs.existsSync(backupFilePath);
+}
+
+function compareBackupPathsNewestFirst(first: string, second: string): number {
+    return second.localeCompare(first);
 }
