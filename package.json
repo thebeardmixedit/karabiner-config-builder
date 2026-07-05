@@ -4,25 +4,34 @@
     "private": false,
     "description": "A TypeScript builder for generating karabiner.json.",
     "type": "module",
+    "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "bin": {
         "kcb": "./dist/cli/index.js"
     },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
     "scripts": {
         "check": "tsc --noEmit",
-        "build": "tsx src/cli/build.ts",
-        "build:test:bind": "tsx src/cli/build.ts --config tests/bind.ts",
-        "build:test:layer": "tsx src/cli/build.ts --config tests/layer.ts",
-        "build:test:conditions": "tsx src/cli/build.ts --config tests/conditions.ts",
-        "deploy": "tsx src/cli/deploy.ts",
-        "deploy:test:bind": "tsx src/cli/deploy.ts --config tests/bind.ts",
-        "deploy:test:layer": "tsx src/cli/deploy.ts --config tests/layer.ts",
-        "deploy:test:conditions": "tsx src/cli/deploy.ts --config tests/conditions.ts",
-        "backup": "tsx src/cli/backup.ts",
-        "restore": "tsx src/cli/restore.ts",
-        "restore:search": "tsx src/cli/restore.ts --search",
+        "build": "tsc",
         "compile": "tsc",
-        "cli": "tsx src/cli/index.ts"
+        "prepare": "npm run build",
+        "cli": "tsx src/cli/index.ts",
+        "smoke": "npm run check && npm run build && node dist/cli/index.js --help",
+        "smoke:build": "npm run build && node dist/cli/index.js build --config tests/bind.ts > /tmp/kcb-bind.json",
+        "smoke:deploy": "npm run build && rm -rf /tmp/kcb-home && mkdir -p /tmp/kcb-home && HOME=/tmp/kcb-home node dist/cli/index.js deploy --config tests/bind.ts --force",
+        "smoke:backup": "npm run build && node dist/cli/index.js backup --backup-dir /tmp/kcb-backups --max-backups 2",
+        "smoke:restore": "npm run build && node dist/cli/index.js restore --backup-dir /tmp/kcb-backups --list"
     },
     "keywords": [
         "karabiner",
@@ -36,10 +45,16 @@
         "url": "git+https://github.com/thebeardmixedit/karabiner-config-builder.git"
     },
     "license": "MIT",
+    "engines": {
+        "node": ">=24"
+    },
     "devDependencies": {
         "@types/node": "^24.0.0",
-        "nodemon": "^3.1.0",
         "tsx": "^4.20.0",
         "typescript": "^5.8.0"
+    },
+    "allowScripts": {
+        "esbuild@0.28.1": true,
+        "fsevents@2.3.3": true
     }
 }
