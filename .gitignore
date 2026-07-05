@@ -35,3 +35,6 @@ Thumbs.db
 
 # Vim undo history
 *.un~
+
+# npm pack artifacts
+*.tgz
