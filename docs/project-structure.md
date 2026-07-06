@@ -26,11 +26,15 @@ karabiner-config-builder/
       args.ts
       backup.ts
       build.ts
+      config.ts
+      config-selection.ts
       deploy.ts
       index.ts
+      init.ts
       paths.ts
+      picker.ts
       prefs.ts
-      restore.ts
+      registry.ts
       run.ts
 
     backup.ts
@@ -132,11 +136,12 @@ This layer should represent Karabiner’s JSON structure, not builder-only conve
 The CLI layer contains command entrypoints for:
 
 ```txt
+kcb init
+kcb config
 kcb build
 kcb deploy
-kcb backup
-kcb restore
 kcb prefs
+kcb backup
 ```
 
 Each command owns its own help and argument parsing.
@@ -150,11 +155,37 @@ kcb --help
 Command-level help is handled by the command itself:
 
 ```sh
+kcb init --help
+kcb config --help
 kcb build --help
 kcb deploy --help
-kcb backup --help
-kcb restore --help
 kcb prefs --help
+kcb backup --help
+```
+
+## CLI support modules
+
+```txt
+src/cli/args.ts
+  small schema-based argument parser
+
+src/cli/paths.ts
+  default paths and path resolution helpers
+
+src/cli/registry.ts
+  config workspace registry loading, saving, validation, and default config management
+
+src/cli/config-selection.ts
+  shared config resolution for default, named, and picked configs
+
+src/cli/picker.ts
+  dependency-free numbered picker
+
+src/cli/prefs.ts
+  CLI preference loading, writing, and reset behavior
+
+src/cli/run.ts
+  direct-run detection for command files
 ```
 
 ## Root implementation files
@@ -181,6 +212,12 @@ src/index.ts
   package export surface
 ```
 
+`src/restore.ts` remains a root implementation file even though restore is exposed through:
+
+```sh
+kcb backup restore
+```
+
 ## Runtime paths
 
 KCB-owned user files live under:
@@ -192,15 +229,71 @@ KCB-owned user files live under:
 Current defaults:
 
 ```txt
-~/.config/karabiner-config-builder/config.ts
+~/.config/karabiner-config-builder/registry.json
 ~/.config/karabiner-config-builder/prefs.json
 ~/.config/karabiner-config-builder/backups/
+~/.config/karabiner-config-builder/default/config.ts
+```
+
+A default workspace looks like:
+
+```txt
+~/.config/karabiner-config-builder/default/
+  config.ts
+  package.json
+  tsconfig.json
+  node_modules/
+    karabiner-config-builder -> installed package
 ```
 
 Karabiner’s active config path remains:
 
 ```txt
 ~/.config/karabiner/karabiner.json
+```
+
+## Registry
+
+Registered KCB workspaces are stored in:
+
+```txt
+~/.config/karabiner-config-builder/registry.json
+```
+
+Example:
+
+```json
+{
+    "configs": {
+        "default": {
+            "name": "default",
+            "workspacePath": "/Users/example/.config/karabiner-config-builder/default",
+            "configPath": "/Users/example/.config/karabiner-config-builder/default/config.ts"
+        }
+    },
+    "defaultConfig": "default"
+}
+```
+
+The registry is app-managed state. It is not a user preference.
+
+## Preferences
+
+User preferences are stored in:
+
+```txt
+~/.config/karabiner-config-builder/prefs.json
+```
+
+`prefs.json` stores user overrides only. Defaults live in code.
+
+Examples of preferences:
+
+```txt
+backupDir
+maxBackups
+backupBeforeDeploy
+confirmDeploy
 ```
 
 ## Package exports
@@ -253,12 +346,8 @@ Run CLI from source:
 npm run cli -- --help
 ```
 
-Run smoke tests:
+Run all smoke tests:
 
 ```sh
-npm run smoke
-npm run smoke:build
-npm run smoke:deploy
-npm run smoke:backup
-npm run smoke:restore
+npm run smoke:all
 ```

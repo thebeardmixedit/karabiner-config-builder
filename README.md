@@ -29,21 +29,46 @@ Then verify the CLI:
 kcb --help
 ```
 
-## Default files
+## Initialize a workspace
 
-By default, `kcb` looks for your config here:
+After installing, initialize a KCB workspace:
 
-```txt
-~/.config/karabiner-config-builder/config.ts
+```sh
+kcb init
 ```
 
-KCB-owned mutable files live here:
+This creates and registers the default workspace:
+
+```txt
+~/.config/karabiner-config-builder/default/
+  config.ts
+  package.json
+  tsconfig.json
+  node_modules/
+```
+
+It also creates the KCB registry:
+
+```txt
+~/.config/karabiner-config-builder/registry.json
+```
+
+The registry tracks known config workspaces and the default config.
+
+## Default files
+
+KCB-owned app files live here:
 
 ```txt
 ~/.config/karabiner-config-builder/
-  config.ts
+  registry.json
   prefs.json
   backups/
+  default/
+    config.ts
+    package.json
+    tsconfig.json
+    node_modules/
 ```
 
 Karabiner’s active config remains here:
@@ -54,10 +79,10 @@ Karabiner’s active config remains here:
 
 ## Minimal config
 
-Create:
+The default workspace contains:
 
 ```txt
-~/.config/karabiner-config-builder/config.ts
+~/.config/karabiner-config-builder/default/config.ts
 ```
 
 Example:
@@ -74,11 +99,7 @@ export default setup(
                 keyboard_type_v2: "ansi",
             },
         },
-        rule(
-            "Basic bindings",
-            bind("caps_lock", key("escape")),
-            bind("f18", key("spacebar")),
-        ),
+        rule("Basic bindings", bind("caps_lock", key("escape"))),
     ),
 );
 ```
@@ -91,34 +112,28 @@ export const config = setup(/* ... */);
 
 ## Basic workflow
 
+Initialize:
+
+```sh
+kcb init
+```
+
 Check generated JSON without writing anything:
 
 ```sh
 kcb build
 ```
 
-Build from an explicit config:
-
-```sh
-kcb build --config ./config.ts
-```
-
 Write generated JSON to a file:
 
 ```sh
-kcb build --config ./config.ts --out ./karabiner.json
+kcb build --output ./karabiner.json
 ```
 
 Deploy to Karabiner’s active config path:
 
 ```sh
 kcb deploy
-```
-
-Deploy from an explicit config:
-
-```sh
-kcb deploy --config ./config.ts
 ```
 
 Skip deploy confirmation:
@@ -136,19 +151,70 @@ kcb backup
 List backups:
 
 ```sh
-kcb restore --list
-```
-
-Pick a backup from a numbered list:
-
-```sh
-kcb restore --pick
+kcb backup list
 ```
 
 Restore the newest backup:
 
 ```sh
-kcb restore
+kcb backup restore
+```
+
+Pick a backup from a numbered list:
+
+```sh
+kcb backup restore --pick
+```
+
+## Multiple configs
+
+Create a custom workspace:
+
+```sh
+kcb init ~/.dotfiles/karabiner-config-builder
+```
+
+Create and mark it as default:
+
+```sh
+kcb init --default ~/.dotfiles/karabiner-config-builder
+```
+
+List registered configs:
+
+```sh
+kcb config list
+```
+
+Set the default config:
+
+```sh
+kcb config default my-config
+```
+
+Pick the default config interactively:
+
+```sh
+kcb config default --pick
+```
+
+Build a specific registered config:
+
+```sh
+kcb build my-config
+```
+
+Deploy a specific registered config:
+
+```sh
+kcb deploy my-config
+```
+
+Pick a config interactively:
+
+```sh
+kcb build --pick
+kcb deploy --pick
 ```
 
 ## CLI preferences
@@ -253,14 +319,10 @@ Compile:
 npm run build
 ```
 
-Run smoke tests:
+Run all smoke tests:
 
 ```sh
-npm run smoke
-npm run smoke:build
-npm run smoke:deploy
-npm run smoke:backup
-npm run smoke:restore
+npm run smoke:all
 ```
 
 Run the CLI from source during development:
