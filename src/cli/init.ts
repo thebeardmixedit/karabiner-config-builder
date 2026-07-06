@@ -101,6 +101,8 @@ function createConfigFile(workspacePath: string): void {
         configPath,
         `import {
     bind,
+    cmd,
+    inApp,
     key,
     profile,
     rule,
@@ -117,11 +119,47 @@ export default setup(
             },
         },
         rule(
-            "Basic bindings",
+            "Starter bindings",
+
+            // Basic remap: Caps Lock acts as Escape.
             bind("caps_lock", key("escape")),
+
+            // Modified input: Command + Space outputs F18.
+            // F18 is useful as a safe trigger key for app launchers,
+            // automation tools, or custom shortcuts.
+            bind(cmd("spacebar"), key("f18")),
+        ),
+
+        rule(
+            {
+                description: "Finder bindings",
+                conditions: [inApp("com.apple.finder")],
+            },
+
+            // App-scoped binding: only active while Finder is frontmost.
+            bind("f18", key("spacebar")),
         ),
     ),
 );
+
+/*
+Example layer:
+
+import { layer } from "karabiner-config-builder";
+
+rule(
+    "Navigation layer",
+    layer("caps_lock", {
+        tapped: key("escape"),
+        bindings: {
+            h: key("left_arrow"),
+            j: key("down_arrow"),
+            k: key("up_arrow"),
+            l: key("right_arrow"),
+        },
+    }),
+);
+*/
 `,
     );
 }
