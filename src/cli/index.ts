@@ -2,11 +2,10 @@
 
 import { runBackupCommand } from "./backup.js";
 import { runBuildCommand } from "./build.js";
+import { runConfigCommand } from "./config.js";
 import { runDeployCommand } from "./deploy.js";
 import { runInitCommand } from "./init.js";
 import { runPrefsCommand } from "./prefs.js";
-import { runRestoreCommand } from "./restore.js";
-import { runConfigCommand } from "./config.js";
 
 const [command, ...commandArgs] = process.argv.slice(2);
 
@@ -33,11 +32,7 @@ switch (command) {
         break;
 
     case "backup":
-        runBackupCommand(commandArgs);
-        break;
-
-    case "restore":
-        await runRestoreCommand(commandArgs);
+        await runBackupCommand(commandArgs);
         break;
 
     case "prefs":
@@ -57,8 +52,7 @@ Commands:
   config    Manage registered configs
   build     Generate Karabiner JSON
   deploy    Generate and deploy Karabiner config
-  backup    Backup active Karabiner config
-  restore   Restore a Karabiner config backup
+  backup    Manage Karabiner config backups
   prefs     Read, write, and reset CLI preferences
 
 Options:
