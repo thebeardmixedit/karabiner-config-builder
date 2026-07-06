@@ -7,8 +7,13 @@ export const DEFAULT_KCB_CONFIG_DIR = path.join(
     "karabiner-config-builder",
 );
 
-export const DEFAULT_CONFIG_PATH = path.join(
+export const DEFAULT_WORKSPACE_DIR = path.join(
     DEFAULT_KCB_CONFIG_DIR,
+    "default",
+);
+
+export const DEFAULT_CONFIG_PATH = path.join(
+    DEFAULT_WORKSPACE_DIR,
     "config.ts",
 );
 
@@ -19,6 +24,11 @@ export const DEFAULT_BACKUP_DIR = path.join(DEFAULT_KCB_CONFIG_DIR, "backups");
 export const DEFAULT_PREFS_PATH = path.join(
     DEFAULT_KCB_CONFIG_DIR,
     "prefs.json",
+);
+
+export const DEFAULT_REGISTRY_PATH = path.join(
+    DEFAULT_KCB_CONFIG_DIR,
+    "registry.json",
 );
 
 export const DEFAULT_KARABINER_CONFIG_PATH = path.join(
