@@ -1,13 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import {
-    assertNoUnknownArgs,
-    getOption,
-    hasFlag,
-    parseArgs,
-    type ParsedArgs,
-} from "./args.js";
+import { assertNoUnknownArgs, getOption, hasFlag, parseArgs } from "./args.js";
 import { DEFAULT_BACKUP_DIR, DEFAULT_PREFS_PATH } from "./paths.js";
 import { isDirectRun } from "./run.js";
 
@@ -18,22 +12,17 @@ export interface CliPrefs {
     confirmDeploy: boolean;
 }
 
-type CliPrefsOverrides = Partial<CliPrefs>;
 type PrefKey = keyof CliPrefs;
 
-const PREF_FLAGS = [
-    "backup-dir",
-    "max-backups",
-    "backup-before-deploy",
-    "confirm-deploy",
-];
+interface PrefDefinition<T extends PrefKey = PrefKey> {
+    key: T;
+    flag: string;
+    description: string;
+    parse(value: string): CliPrefs[T];
+    format(value: CliPrefs[T]): string;
+}
 
-const PREF_KEYS: PrefKey[] = [
-    "backupDir",
-    "maxBackups",
-    "backupBeforeDeploy",
-    "confirmDeploy",
-];
+type PartialCliPrefs = Partial<CliPrefs>;
 
 const DEFAULT_CLI_PREFS: CliPrefs = {
     backupDir: DEFAULT_BACKUP_DIR,
@@ -42,12 +31,38 @@ const DEFAULT_CLI_PREFS: CliPrefs = {
     confirmDeploy: true,
 };
 
-export function loadPrefs(): CliPrefs {
-    return {
-        ...DEFAULT_CLI_PREFS,
-        ...loadPrefsOverrides(),
-    };
-}
+const PREF_DEFINITIONS = [
+    {
+        key: "backupDir",
+        flag: "backup-dir",
+        description: "Directory where backup folders are stored",
+        parse: parseString,
+        format: formatString,
+    },
+    {
+        key: "maxBackups",
+        flag: "max-backups",
+        description: "Maximum number of backups to keep",
+        parse: parsePositiveInteger,
+        format: formatNumber,
+    },
+    {
+        key: "backupBeforeDeploy",
+        flag: "backup-before-deploy",
+        description: "Whether deploy backs up before writing",
+        parse: parseBoolean,
+        format: formatBoolean,
+    },
+    {
+        key: "confirmDeploy",
+        flag: "confirm-deploy",
+        description: "Whether deploy asks for confirmation",
+        parse: parseBoolean,
+        format: formatBoolean,
+    },
+] satisfies PrefDefinition[];
+
+const PREF_FLAGS = PREF_DEFINITIONS.map((pref) => pref.flag);
 
 export function runPrefsCommand(rawArgs = process.argv.slice(2)): void {
     const [command, ...commandArgs] = rawArgs;
@@ -59,29 +74,29 @@ export function runPrefsCommand(rawArgs = process.argv.slice(2)): void {
 
     switch (command) {
         case "read":
-            readPrefsCommand(commandArgs);
-            return;
+            runPrefsReadCommand(commandArgs);
+            break;
 
         case "write":
-            writePrefsCommand(commandArgs);
-            return;
+            runPrefsWriteCommand(commandArgs);
+            break;
 
         case "reset":
-            resetPrefsCommand(commandArgs);
-            return;
+            runPrefsResetCommand(commandArgs);
+            break;
 
         default:
             throw new Error(`Unknown prefs command: ${command}`);
     }
 }
 
-function readPrefsCommand(rawArgs: string[]): void {
+function runPrefsReadCommand(rawArgs: string[]): void {
     const args = parseArgs(rawArgs, {
         flags: ["h", "help", ...PREF_FLAGS],
     });
 
     if (hasFlag(args, "help", "h")) {
-        printReadHelp();
+        printPrefsReadHelp();
         return;
     }
 
@@ -90,190 +105,118 @@ function readPrefsCommand(rawArgs: string[]): void {
         positionals: 0,
     });
 
-    const prefs = loadPrefs();
-    const selectedKeys = getSelectedPrefKeys(args);
+    const selectedPrefs = getSelectedPrefs(args.flags);
 
-    if (selectedKeys.length === 0) {
-        console.log(JSON.stringify(prefs, null, 4));
-        return;
+    if (selectedPrefs.length > 1) {
+        throw new Error("Read one preference at a time, or read all.");
     }
-
-    if (selectedKeys.length === 1) {
-        console.log(
-            formatPrefValue(
-                getPrefValue(prefs, getOnlySelectedPrefKey(selectedKeys)),
-            ),
-        );
-        return;
-    }
-
-    console.log(JSON.stringify(pickPrefs(prefs, selectedKeys), null, 4));
-}
-
-function writePrefsCommand(rawArgs: string[]): void {
-    const args = parseArgs(rawArgs, {
-        flags: ["h", "help"],
-        options: PREF_FLAGS,
-    });
-
-    if (hasFlag(args, "help", "h")) {
-        printWriteHelp();
-        return;
-    }
-
-    assertNoUnknownArgs(args, {
-        flags: ["h", "help"],
-        options: PREF_FLAGS,
-        positionals: 0,
-    });
-
-    const updates = getPrefUpdates(args);
-
-    if (updates.length === 0) {
-        throw new Error("No preferences provided.");
-    }
-
-    const overrides = loadPrefsOverrides();
-
-    for (const update of updates) {
-        setPrefOverride(overrides, update.key, update.value);
-    }
-
-    savePrefsOverrides(overrides);
-
-    const prefs = loadPrefs();
-    const updatedKeys = updates.map((update) => update.key);
-
-    console.log("Updated CLI preferences:");
-    console.log(JSON.stringify(pickPrefs(prefs, updatedKeys), null, 4));
-}
-
-function resetPrefsCommand(rawArgs: string[]): void {
-    const args = parseArgs(rawArgs, {
-        flags: ["h", "help", ...PREF_FLAGS],
-    });
-
-    if (hasFlag(args, "help", "h")) {
-        printResetHelp();
-        return;
-    }
-
-    assertNoUnknownArgs(args, {
-        flags: ["h", "help", ...PREF_FLAGS],
-        positionals: 0,
-    });
-
-    const selectedKeys = getSelectedPrefKeys(args);
-
-    if (selectedKeys.length === 0) {
-        resetPrefs();
-        console.log("Reset all CLI preferences.");
-        return;
-    }
-
-    const overrides = loadPrefsOverrides();
-
-    for (const key of selectedKeys) {
-        deletePrefOverride(overrides, key);
-    }
-
-    savePrefsOverrides(overrides);
 
     const prefs = loadPrefs();
 
-    console.log("Reset CLI preferences:");
-    console.log(JSON.stringify(pickPrefs(prefs, selectedKeys), null, 4));
-}
+    if (selectedPrefs.length === 1) {
+        const selectedPref = selectedPrefs[0];
 
-interface PrefUpdate {
-    key: PrefKey;
-    value: string | number | boolean;
-}
-
-function getPrefUpdates(args: ParsedArgs): PrefUpdate[] {
-    const updates: PrefUpdate[] = [];
-
-    for (const flag of PREF_FLAGS) {
-        const value = getOption(args, flag);
-
-        if (value === undefined) {
-            continue;
+        if (!selectedPref) {
+            throw new Error("No preference selected.");
         }
 
-        const key = prefFlagToKey(flag);
-
-        updates.push({
-            key,
-            value: parsePrefValue(key, value),
-        });
+        console.log(formatPrefValue(selectedPref, prefs[selectedPref.key]));
+        return;
     }
 
-    return updates;
+    console.log(JSON.stringify(prefs, null, 4));
 }
 
-function getSelectedPrefKeys(args: ParsedArgs): PrefKey[] {
-    return PREF_FLAGS.filter((flag) => hasFlag(args, flag)).map(prefFlagToKey);
+function runPrefsWriteCommand(rawArgs: string[]): void {
+    const args = parseArgs(rawArgs, {
+        flags: ["h", "help"],
+        options: PREF_FLAGS,
+    });
+
+    if (hasFlag(args, "help", "h")) {
+        printPrefsWriteHelp();
+        return;
+    }
+
+    assertNoUnknownArgs(args, {
+        flags: ["h", "help"],
+        options: PREF_FLAGS,
+        positionals: 0,
+    });
+
+    const selectedPrefs = getSelectedPrefs(args.options.keys());
+
+    if (selectedPrefs.length === 0) {
+        throw new Error("At least one preference is required.");
+    }
+
+    const overrides = loadPrefsOverrides();
+
+    for (const pref of selectedPrefs) {
+        const rawValue = getOption(args, pref.flag);
+
+        if (rawValue === undefined) {
+            throw new Error(`--${pref.flag} requires a value.`);
+        }
+
+        setPrefOverride(overrides, pref, rawValue);
+    }
+
+    savePrefsOverrides(overrides);
+
+    const prefs = loadPrefs();
+
+    console.log("Updated preferences:");
+    console.log(JSON.stringify(prefs, null, 4));
 }
 
-function prefFlagToKey(flag: string): PrefKey {
-    switch (flag) {
-        case "backup-dir":
-            return "backupDir";
+function runPrefsResetCommand(rawArgs: string[]): void {
+    const args = parseArgs(rawArgs, {
+        flags: ["h", "help", ...PREF_FLAGS],
+    });
 
-        case "max-backups":
-            return "maxBackups";
+    if (hasFlag(args, "help", "h")) {
+        printPrefsResetHelp();
+        return;
+    }
 
-        case "backup-before-deploy":
-            return "backupBeforeDeploy";
+    assertNoUnknownArgs(args, {
+        flags: ["h", "help", ...PREF_FLAGS],
+        positionals: 0,
+    });
 
-        case "confirm-deploy":
-            return "confirmDeploy";
+    const selectedPrefs = getSelectedPrefs(args.flags);
 
-        default:
-            throw new Error(`Unknown preference: --${flag}`);
+    if (selectedPrefs.length === 0) {
+        savePrefsOverrides({});
+        console.log("Reset all preferences.");
+        return;
+    }
+
+    const overrides = loadPrefsOverrides();
+
+    for (const pref of selectedPrefs) {
+        delete overrides[pref.key];
+    }
+
+    savePrefsOverrides(overrides);
+
+    console.log("Reset preferences:");
+    for (const pref of selectedPrefs) {
+        console.log(`--${pref.flag}`);
     }
 }
 
-function parsePrefValue(
-    key: PrefKey,
-    value: string,
-): string | number | boolean {
-    switch (key) {
-        case "backupDir":
-            return value;
+export function loadPrefs(): CliPrefs {
+    const overrides = loadPrefsOverrides();
 
-        case "maxBackups":
-            return parseMaxBackups(value);
-
-        case "backupBeforeDeploy":
-        case "confirmDeploy":
-            return parseBoolean(value);
-    }
+    return {
+        ...DEFAULT_CLI_PREFS,
+        ...overrides,
+    };
 }
 
-function parseMaxBackups(value: string): number {
-    const maxBackups = Number(value);
-
-    if (!Number.isInteger(maxBackups) || maxBackups < 1) {
-        throw new Error("--max-backups must be an integer greater than 0.");
-    }
-
-    return maxBackups;
-}
-
-function parseBoolean(value: string): boolean {
-    if (value === "true") {
-        return true;
-    }
-
-    if (value === "false") {
-        return false;
-    }
-
-    throw new Error("Boolean preferences must be true or false.");
-}
-
-function loadPrefsOverrides(): CliPrefsOverrides {
+function loadPrefsOverrides(): PartialCliPrefs {
     if (!fs.existsSync(DEFAULT_PREFS_PATH)) {
         return {};
     }
@@ -284,12 +227,25 @@ function loadPrefsOverrides(): CliPrefsOverrides {
     return normalizePrefsOverrides(parsed);
 }
 
-function normalizePrefsOverrides(value: unknown): CliPrefsOverrides {
+function savePrefsOverrides(overrides: PartialCliPrefs): void {
+    const normalized = normalizePrefsOverrides(overrides);
+
+    fs.mkdirSync(path.dirname(DEFAULT_PREFS_PATH), {
+        recursive: true,
+    });
+
+    fs.writeFileSync(
+        DEFAULT_PREFS_PATH,
+        `${JSON.stringify(normalized, null, 4)}\n`,
+    );
+}
+
+function normalizePrefsOverrides(value: unknown): PartialCliPrefs {
     if (!isRecord(value)) {
         throw new Error(`Invalid prefs file: ${DEFAULT_PREFS_PATH}`);
     }
 
-    const prefs: CliPrefsOverrides = {};
+    const prefs: PartialCliPrefs = {};
 
     if (value.backupDir !== undefined) {
         if (typeof value.backupDir !== "string") {
@@ -332,176 +288,91 @@ function normalizePrefsOverrides(value: unknown): CliPrefsOverrides {
     return prefs;
 }
 
-function savePrefsOverrides(overrides: CliPrefsOverrides): void {
-    if (!hasPrefsOverrides(overrides)) {
-        resetPrefs();
-        return;
-    }
+function getSelectedPrefs(flags: Iterable<string>): PrefDefinition[] {
+    const selectedFlags = new Set(flags);
 
-    fs.mkdirSync(path.dirname(DEFAULT_PREFS_PATH), { recursive: true });
-    fs.writeFileSync(
-        DEFAULT_PREFS_PATH,
-        `${JSON.stringify(createPrefsJson(overrides), null, 4)}\n`,
-    );
-}
-
-function resetPrefs(): void {
-    if (!fs.existsSync(DEFAULT_PREFS_PATH)) {
-        return;
-    }
-
-    fs.rmSync(DEFAULT_PREFS_PATH, { force: true });
-}
-
-function hasPrefsOverrides(overrides: CliPrefsOverrides): boolean {
-    return PREF_KEYS.some(
-        (key) => getPrefOverride(overrides, key) !== undefined,
-    );
-}
-
-function createPrefsJson(
-    overrides: CliPrefsOverrides,
-): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
-
-    for (const key of PREF_KEYS) {
-        const value = getPrefOverride(overrides, key);
-
-        if (value !== undefined) {
-            result[key] = value;
-        }
-    }
-
-    return result;
+    return PREF_DEFINITIONS.filter((pref) => selectedFlags.has(pref.flag));
 }
 
 function setPrefOverride(
-    overrides: CliPrefsOverrides,
-    key: PrefKey,
-    value: string | number | boolean,
+    prefs: PartialCliPrefs,
+    pref: PrefDefinition,
+    rawValue: string,
 ): void {
-    switch (key) {
+    switch (pref.key) {
         case "backupDir":
-            if (typeof value !== "string") {
-                throw new Error("backupDir must be a string.");
-            }
-
-            overrides.backupDir = value;
-            return;
+            prefs.backupDir = parseString(rawValue);
+            break;
 
         case "maxBackups":
-            if (typeof value !== "number") {
-                throw new Error("maxBackups must be a number.");
-            }
-
-            overrides.maxBackups = value;
-            return;
+            prefs.maxBackups = parsePositiveInteger(rawValue);
+            break;
 
         case "backupBeforeDeploy":
-            if (typeof value !== "boolean") {
-                throw new Error("backupBeforeDeploy must be a boolean.");
-            }
-
-            overrides.backupBeforeDeploy = value;
-            return;
+            prefs.backupBeforeDeploy = parseBoolean(rawValue);
+            break;
 
         case "confirmDeploy":
-            if (typeof value !== "boolean") {
-                throw new Error("confirmDeploy must be a boolean.");
-            }
-
-            overrides.confirmDeploy = value;
-            return;
+            prefs.confirmDeploy = parseBoolean(rawValue);
+            break;
     }
 }
 
-function deletePrefOverride(overrides: CliPrefsOverrides, key: PrefKey): void {
-    switch (key) {
+function formatPrefValue(
+    pref: PrefDefinition,
+    value: CliPrefs[PrefKey],
+): string {
+    switch (pref.key) {
         case "backupDir":
-            delete overrides.backupDir;
-            return;
+            return formatString(value as CliPrefs["backupDir"]);
 
         case "maxBackups":
-            delete overrides.maxBackups;
-            return;
+            return formatNumber(value as CliPrefs["maxBackups"]);
 
         case "backupBeforeDeploy":
-            delete overrides.backupBeforeDeploy;
-            return;
+            return formatBoolean(value as CliPrefs["backupBeforeDeploy"]);
 
         case "confirmDeploy":
-            delete overrides.confirmDeploy;
-            return;
+            return formatBoolean(value as CliPrefs["confirmDeploy"]);
     }
 }
 
-function getPrefOverride(
-    overrides: CliPrefsOverrides,
-    key: PrefKey,
-): string | number | boolean | undefined {
-    switch (key) {
-        case "backupDir":
-            return overrides.backupDir;
-
-        case "maxBackups":
-            return overrides.maxBackups;
-
-        case "backupBeforeDeploy":
-            return overrides.backupBeforeDeploy;
-
-        case "confirmDeploy":
-            return overrides.confirmDeploy;
-    }
+function parseString(value: string): string {
+    return value;
 }
 
-function getPrefValue(
-    prefs: CliPrefs,
-    key: PrefKey,
-): string | number | boolean {
-    switch (key) {
-        case "backupDir":
-            return prefs.backupDir;
+function parsePositiveInteger(value: string): number {
+    const parsed = Number(value);
 
-        case "maxBackups":
-            return prefs.maxBackups;
-
-        case "backupBeforeDeploy":
-            return prefs.backupBeforeDeploy;
-
-        case "confirmDeploy":
-            return prefs.confirmDeploy;
-    }
-}
-
-function pickPrefs(
-    prefs: CliPrefs,
-    keys: PrefKey[],
-): Record<string, string | number | boolean> {
-    const result: Record<string, string | number | boolean> = {};
-
-    for (const key of keys) {
-        result[key] = getPrefValue(prefs, key);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new Error("Preference value must be an integer greater than 0.");
     }
 
-    return result;
+    return parsed;
 }
 
-function formatPrefValue(value: string | number | boolean): string {
-    return String(value);
-}
-
-function getOnlySelectedPrefKey(keys: PrefKey[]): PrefKey {
-    const key = keys[0];
-
-    if (!key) {
-        throw new Error("No preference selected.");
+function parseBoolean(value: string): boolean {
+    if (value === "true") {
+        return true;
     }
 
-    return key;
+    if (value === "false") {
+        return false;
+    }
+
+    throw new Error("Boolean preference value must be true or false.");
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
+function formatString(value: string): string {
+    return value;
+}
+
+function formatNumber(value: number): string {
+    return value.toString();
+}
+
+function formatBoolean(value: boolean): string {
+    return value ? "true" : "false";
 }
 
 function printHelp(): void {
@@ -509,51 +380,70 @@ function printHelp(): void {
   kcb prefs <command> [options]
 
 Commands:
-  read     Print CLI preferences
-  write    Write CLI preference overrides
-  reset    Reset CLI preferences
+  read      Read preferences
+  write     Write preferences
+  reset     Reset preferences
+
+Options:
+  -h, --help  Show this help`);
+}
+
+function printPrefsReadHelp(): void {
+    console.log(`Usage:
+  kcb prefs read [--<pref-name>]
 
 Examples:
   kcb prefs read
   kcb prefs read --max-backups
-  kcb prefs write --max-backups 99 --backup-before-deploy true
-  kcb prefs reset`);
-}
 
-function printReadHelp(): void {
-    console.log(`Usage:
-  kcb prefs read [options]
+Preferences:
+${formatPrefHelp()}
 
 Options:
-  --backup-dir              Print backup directory
-  --max-backups             Print max backups
-  --backup-before-deploy    Print backup-before-deploy preference
-  --confirm-deploy          Print confirm-deploy preference
-  -h, --help                Show this help`);
+  -h, --help  Show this help`);
 }
 
-function printWriteHelp(): void {
+function printPrefsWriteHelp(): void {
     console.log(`Usage:
-  kcb prefs write [options]
+  kcb prefs write --<pref-name> <value>
+
+Examples:
+  kcb prefs write --max-backups 99
+  kcb prefs write --backup-before-deploy true
+  kcb prefs write --confirm-deploy false
+
+Preferences:
+${formatPrefHelp()}
 
 Options:
-  --backup-dir <path>               Set backup directory
-  --max-backups <count>             Set max backups
-  --backup-before-deploy <true|false>
-  --confirm-deploy <true|false>
-  -h, --help                        Show this help`);
+  -h, --help  Show this help`);
 }
 
-function printResetHelp(): void {
+function printPrefsResetHelp(): void {
     console.log(`Usage:
-  kcb prefs reset [options]
+  kcb prefs reset [--<pref-name>]
+
+Examples:
+  kcb prefs reset
+  kcb prefs reset --max-backups
+
+Preferences:
+${formatPrefHelp()}
 
 Options:
-  --backup-dir              Reset backup directory
-  --max-backups             Reset max backups
-  --backup-before-deploy    Reset backup-before-deploy preference
-  --confirm-deploy          Reset confirm-deploy preference
-  -h, --help                Show this help`);
+  -h, --help  Show this help`);
+}
+
+function formatPrefHelp(): string {
+    return PREF_DEFINITIONS.map((pref) => {
+        const defaultValue = DEFAULT_CLI_PREFS[pref.key];
+
+        return `  --${pref.flag.padEnd(22)} ${pref.description}. Default: ${formatPrefValue(pref, defaultValue)}`;
+    }).join("\n");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 if (isDirectRun(import.meta.url)) {
