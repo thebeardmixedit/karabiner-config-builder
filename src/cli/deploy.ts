@@ -6,7 +6,14 @@ import { stdin as input, stdout as output } from "node:process";
 import { backup, pruneBackups } from "../backup.js";
 import { build } from "../build.js";
 import { writeKarabinerConfig } from "../write.js";
-import { assertNoUnknownArgs, getOption, hasFlag, parseArgs } from "./args.js";
+import {
+    assertNoUnknownArgs,
+    getOption,
+    getPositional,
+    hasFlag,
+    parseArgs,
+} from "./args.js";
+import { resolveConfigSelection } from "./config-selection.js";
 import { loadPrefs } from "./prefs.js";
 import { resolveKarabinerConfigPath, resolvePath } from "./paths.js";
 import { isDirectRun } from "./run.js";
@@ -15,8 +22,8 @@ export async function runDeployCommand(
     rawArgs = process.argv.slice(2),
 ): Promise<void> {
     const args = parseArgs(rawArgs, {
-        flags: ["h", "help", "force", "no-backup"],
-        options: ["c", "config", "backup-dir", "max-backups", "symlink-from"],
+        flags: ["h", "help", "p", "pick", "f", "force", "omit-backup"],
+        options: ["s", "symlink-from"],
     });
 
     if (hasFlag(args, "help", "h")) {
@@ -25,37 +32,38 @@ export async function runDeployCommand(
     }
 
     assertNoUnknownArgs(args, {
-        flags: ["h", "help", "force", "no-backup"],
-        options: ["c", "config", "backup-dir", "max-backups", "symlink-from"],
-        positionals: 0,
+        flags: ["h", "help", "p", "pick", "f", "force", "omit-backup"],
+        options: ["s", "symlink-from"],
+        positionals: 1,
     });
 
     const prefs = loadPrefs();
 
-    const configPath = getOption(args, "config", "c");
+    const configName = getPositional(args, 0);
+    const pick = hasFlag(args, "pick", "p");
     const activePath = resolveKarabinerConfigPath();
-    const symlinkFromPath = getOption(args, "symlink-from");
+    const symlinkFromPath = getOption(args, "symlink-from", "s");
     const deployTargetPath = symlinkFromPath
         ? resolvePath(symlinkFromPath)
         : activePath;
 
-    const backupDir = getOption(args, "backup-dir") ?? prefs.backupDir;
-    const maxBackups = parseMaxBackups(
-        getOption(args, "max-backups"),
-        prefs.maxBackups,
-    );
-
     const shouldBackup =
-        prefs.backupBeforeDeploy && !hasFlag(args, "no-backup");
+        prefs.backupBeforeDeploy && !hasFlag(args, "omit-backup");
 
-    const shouldConfirm = prefs.confirmDeploy && !hasFlag(args, "force");
+    const shouldConfirm = prefs.confirmDeploy && !hasFlag(args, "force", "f");
+
+    const selectedConfig = await resolveConfigSelection({
+        ...(configName ? { configName } : {}),
+        pick,
+    });
 
     const result = await build({
-        ...(configPath ? { configPath } : {}),
+        configPath: selectedConfig.configPath,
     });
 
     if (shouldConfirm) {
         const confirmed = await confirmDeploy({
+            configName: selectedConfig.name,
             activePath,
             configPath: result.configPath,
             deployTargetPath,
@@ -72,8 +80,8 @@ export async function runDeployCommand(
     if (shouldBackup) {
         backupActiveConfig({
             activePath,
-            backupDir,
-            maxBackups,
+            backupDir: prefs.backupDir,
+            maxBackups: prefs.maxBackups,
         });
     }
 
@@ -90,6 +98,7 @@ export async function runDeployCommand(
         });
     }
 
+    console.log(`Deployed config: ${selectedConfig.name}`);
     console.log(`Built Karabiner config from: ${result.configPath}`);
 
     if (symlinkFromPath) {
@@ -103,6 +112,7 @@ export async function runDeployCommand(
 }
 
 interface ConfirmDeployOptions {
+    configName: string;
     activePath: string;
     configPath: string;
     deployTargetPath: string;
@@ -112,7 +122,8 @@ interface ConfirmDeployOptions {
 
 async function confirmDeploy(options: ConfirmDeployOptions): Promise<boolean> {
     console.log("About to deploy Karabiner config:");
-    console.log(`Config: ${options.configPath}`);
+    console.log(`Config name: ${options.configName}`);
+    console.log(`Config path: ${options.configPath}`);
     console.log(`Active: ${options.activePath}`);
 
     if (options.symlink) {
@@ -225,35 +236,20 @@ function isSymlink(filePath: string): boolean {
     }
 }
 
-function parseMaxBackups(
-    value: string | undefined,
-    defaultValue: number,
-): number {
-    if (!value) {
-        return defaultValue;
-    }
-
-    const maxBackups = Number(value);
-
-    if (!Number.isInteger(maxBackups) || maxBackups < 1) {
-        throw new Error("--max-backups must be an integer greater than 0.");
-    }
-
-    return maxBackups;
-}
-
 function printHelp(): void {
     console.log(`Usage:
-  kcb deploy [options]
+  kcb deploy [options] [config-name]
+
+Arguments:
+  config-name               Registered config name
+                            Default: default config from registry.json
 
 Options:
-  -c, --config <path>    Config file to load
-  --symlink-from <path>  Write generated config here and symlink Karabiner to it
-  --backup-dir <path>   Directory where backup folders are stored
-  --max-backups <count> Maximum number of backups to keep
-  --no-backup           Skip backup before deploy
-  --force               Skip deploy confirmation
-  -h, --help            Show this help`);
+  -p, --pick                Choose a config from a numbered list
+  -s, --symlink-from <path> Write generated config here and symlink Karabiner to it
+  -f, --force               Skip deploy confirmation
+  --omit-backup             Skip backup before deploy
+  -h, --help                Show this help`);
 }
 
 if (isDirectRun(import.meta.url)) {
