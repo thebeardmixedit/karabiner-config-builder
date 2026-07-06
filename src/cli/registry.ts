@@ -131,6 +131,12 @@ export function getDefaultConfig(registry = loadRegistry()): RegisteredConfig {
     return getConfig(configName, registry);
 }
 
+export function getDefaultConfigName(
+    registry = loadRegistry(),
+): string | undefined {
+    return registry.defaultConfig;
+}
+
 export function getConfig(
     configName: string,
     registry = loadRegistry(),

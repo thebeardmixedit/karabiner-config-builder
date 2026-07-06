@@ -6,6 +6,7 @@ import { runDeployCommand } from "./deploy.js";
 import { runInitCommand } from "./init.js";
 import { runPrefsCommand } from "./prefs.js";
 import { runRestoreCommand } from "./restore.js";
+import { runConfigCommand } from "./config.js";
 
 const [command, ...commandArgs] = process.argv.slice(2);
 
@@ -17,6 +18,10 @@ if (!command || command === "-h" || command === "--help") {
 switch (command) {
     case "init":
         runInitCommand(commandArgs);
+        break;
+
+    case "config":
+        await runConfigCommand(commandArgs);
         break;
 
     case "build":
@@ -49,6 +54,7 @@ function printHelp(): void {
 
 Commands:
   init      Initialize a Karabiner Config Builder workspace
+  config    Manage registered configs
   build     Generate Karabiner JSON
   deploy    Generate and deploy Karabiner config
   backup    Backup active Karabiner config
