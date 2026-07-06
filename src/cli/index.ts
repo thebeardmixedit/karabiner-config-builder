@@ -3,6 +3,7 @@
 import { runBackupCommand } from "./backup.js";
 import { runBuildCommand } from "./build.js";
 import { runDeployCommand } from "./deploy.js";
+import { runInitCommand } from "./init.js";
 import { runPrefsCommand } from "./prefs.js";
 import { runRestoreCommand } from "./restore.js";
 
@@ -14,6 +15,10 @@ if (!command || command === "-h" || command === "--help") {
 }
 
 switch (command) {
+    case "init":
+        runInitCommand(commandArgs);
+        break;
+
     case "build":
         await runBuildCommand(commandArgs);
         break;
@@ -43,6 +48,7 @@ function printHelp(): void {
   kcb <command> [options]
 
 Commands:
+  init      Initialize a Karabiner Config Builder workspace
   build     Generate Karabiner JSON
   deploy    Generate and deploy Karabiner config
   backup    Backup active Karabiner config
