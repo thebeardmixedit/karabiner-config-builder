@@ -1,8 +1,9 @@
 import type { Manipulator, To } from "../karabiner/index.js";
 import { variableIs } from "./conditions/index.js";
 
-export type Output = To | To[];
+const DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS = 100;
 
+export type Output = To | To[];
 export type Binding = Output | LayerDefinition;
 
 export interface LayerDefinition {
@@ -11,11 +12,13 @@ export interface LayerDefinition {
     key: string;
     tapped?: Output;
     bindings: Record<string, Binding>;
+    holdDownMilliseconds: number;
 }
 
 export interface LayerOptions {
     tapped?: Output;
     bindings?: Record<string, Binding>;
+    holdDownMilliseconds?: number;
 }
 
 export function layer(
@@ -29,6 +32,9 @@ export function layer(
         name: keyOrName,
         key: keyOrName,
         bindings: options.bindings ?? {},
+        holdDownMilliseconds:
+            options.holdDownMilliseconds ??
+            DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS,
         ...(options.tapped ? { tapped: options.tapped } : {}),
     };
 }
@@ -106,7 +112,10 @@ function createLayerActivator(
     };
 
     if (definition.tapped) {
-        manipulator.to_if_alone = normalizeOutput(definition.tapped);
+        manipulator.to_if_alone = applyLayerHoldDownMilliseconds(
+            normalizeOutput(definition.tapped),
+            definition.holdDownMilliseconds,
+        );
     }
 
     if (parentVariable) {
@@ -137,6 +146,38 @@ function createLayerBinding(
 
 function normalizeOutput(output: Output): To[] {
     return Array.isArray(output) ? output : [output];
+}
+
+function applyLayerHoldDownMilliseconds(
+    output: To[],
+    holdDownMilliseconds: number,
+): To[] {
+    if (holdDownMilliseconds <= 0) {
+        return output;
+    }
+
+    return output.map((event) => {
+        if (!isKeyOutput(event)) {
+            return event;
+        }
+
+        if (event.hold_down_milliseconds !== undefined) {
+            return event;
+        }
+
+        return {
+            ...event,
+            hold_down_milliseconds: holdDownMilliseconds,
+        };
+    });
+}
+
+function isKeyOutput(event: To): boolean {
+    return (
+        event.key_code !== undefined ||
+        event.consumer_key_code !== undefined ||
+        event.pointing_button !== undefined
+    );
 }
 
 function formatLayerPath(path: string[]): string {
