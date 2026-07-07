@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import {
     assertNoUnknownArgs,
@@ -11,6 +10,7 @@ import {
 import { DEFAULT_WORKSPACE_DIR, resolvePath } from "./paths.js";
 import { registerWorkspace } from "./registry.js";
 import { isDirectRun } from "./run.js";
+import { linkWorkspacePackage } from "./package-link.js";
 
 interface InitWorkspaceOptions {
     workspaceDir: string;
@@ -62,7 +62,7 @@ export function initWorkspace(options: InitWorkspaceOptions): {
     createConfigFile(workspacePath);
     createPackageJson(workspacePath);
     createTsconfigJson(workspacePath);
-    createPackageBridge(workspacePath);
+    linkWorkspacePackage(workspacePath);
 
     const config = registerWorkspace(workspacePath, {
         makeDefault: options.makeDefault,
@@ -207,69 +207,12 @@ function createTsconfigJson(workspacePath: string): void {
     );
 }
 
-function createPackageBridge(workspacePath: string): void {
-    const nodeModulesPath = path.join(workspacePath, "node_modules");
-    const packageBridgePath = path.join(
-        nodeModulesPath,
-        "karabiner-config-builder",
-    );
-    const packageRoot = getPackageRoot();
-
-    fs.mkdirSync(nodeModulesPath, {
-        recursive: true,
-    });
-
-    if (pathExistsOrSymlink(packageBridgePath)) {
-        assertPackageBridge(packageBridgePath, packageRoot);
-        return;
-    }
-
-    fs.symlinkSync(packageRoot, packageBridgePath, "dir");
-}
-
-function assertPackageBridge(
-    packageBridgePath: string,
-    packageRoot: string,
-): void {
-    const stats = fs.lstatSync(packageBridgePath);
-
-    if (!stats.isSymbolicLink()) {
-        throw new Error(
-            `Package bridge already exists and is not a symlink: ${packageBridgePath}`,
-        );
-    }
-
-    const targetPath = fs.realpathSync(packageBridgePath);
-    const expectedPath = fs.realpathSync(packageRoot);
-
-    if (targetPath !== expectedPath) {
-        throw new Error(
-            `Package bridge points somewhere else: ${packageBridgePath}`,
-        );
-    }
-}
-
-function getPackageRoot(): string {
-    const currentFilePath = fileURLToPath(import.meta.url);
-
-    return path.resolve(path.dirname(currentFilePath), "..", "..");
-}
-
 function writeFileIfMissing(filePath: string, contents: string): void {
     if (fs.existsSync(filePath)) {
         return;
     }
 
     fs.writeFileSync(filePath, contents);
-}
-
-function pathExistsOrSymlink(filePath: string): boolean {
-    try {
-        fs.lstatSync(filePath);
-        return true;
-    } catch {
-        return false;
-    }
 }
 
 function printHelp(): void {

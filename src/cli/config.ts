@@ -1,5 +1,7 @@
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import fs from "node:fs";
+import path from "node:path";
 
 import {
     assertNoUnknownArgs,
@@ -9,6 +11,7 @@ import {
 } from "./args.js";
 import { pickOne } from "./picker.js";
 import {
+    getConfig,
     getDefaultConfigName,
     listConfigs,
     removeConfig,
@@ -16,6 +19,7 @@ import {
     type RegisteredConfig,
 } from "./registry.js";
 import { isDirectRun } from "./run.js";
+import { linkWorkspacePackage } from "./package-link.js";
 
 export async function runConfigCommand(
     rawArgs = process.argv.slice(2),
@@ -38,6 +42,10 @@ export async function runConfigCommand(
 
         case "remove":
             await runConfigRemoveCommand(commandArgs);
+            break;
+
+        case "relink":
+            await runConfigRelinkCommand(commandArgs);
             break;
 
         default:
@@ -170,6 +178,54 @@ async function runConfigRemoveCommand(rawArgs: string[]): Promise<void> {
     console.log(removedConfig.workspacePath);
 }
 
+async function runConfigRelinkCommand(rawArgs: string[]): Promise<void> {
+    const args = parseArgs(rawArgs, {
+        flags: ["h", "help", "p", "pick"],
+    });
+
+    if (hasFlag(args, "help", "h")) {
+        printConfigRelinkHelp();
+        return;
+    }
+
+    assertNoUnknownArgs(args, {
+        flags: ["h", "help", "p", "pick"],
+        positionals: 1,
+    });
+
+    const pick = hasFlag(args, "pick", "p");
+    const configName = getPositional(args, 0);
+
+    if (pick && configName) {
+        throw new Error("Use either a config name or --pick, not both.");
+    }
+
+    const configs = await getConfigsForRelink({
+        pick,
+        ...(configName ? { configName } : {}),
+    });
+
+    if (configs.length === 0) {
+        console.log("No configs registered.");
+        return;
+    }
+
+    for (const config of configs) {
+        try {
+            assertWorkspaceCanBeRelinked(config);
+
+            const result = linkWorkspacePackage(config.workspacePath);
+
+            console.log(`Relinked config: ${config.name}`);
+            console.log(`  ${result.packageLinkPath}`);
+            console.log(`  -> ${result.packageRoot}`);
+        } catch (error) {
+            console.warn(`Skipped config: ${config.name}`);
+            console.warn(`  ${getErrorMessage(error)}`);
+        }
+    }
+}
+
 async function pickConfig(): Promise<RegisteredConfig> {
     const configs = listConfigs();
 
@@ -225,14 +281,63 @@ function requiredConfigName(configName: string | undefined): string {
     return configName;
 }
 
+async function getConfigsForRelink(options: {
+    pick: boolean;
+    configName?: string;
+}): Promise<RegisteredConfig[]> {
+    if (options.pick) {
+        return [await pickConfig()];
+    }
+
+    if (options.configName) {
+        return [getConfig(options.configName)];
+    }
+
+    return listConfigs();
+}
+
+function assertWorkspaceCanBeRelinked(config: RegisteredConfig): void {
+    if (!fs.existsSync(config.workspacePath)) {
+        throw new Error(`Workspace does not exist: ${config.workspacePath}`);
+    }
+
+    if (!fs.statSync(config.workspacePath).isDirectory()) {
+        throw new Error(
+            `Workspace path is not a directory: ${config.workspacePath}`,
+        );
+    }
+
+    const requiredFiles = [
+        path.join(config.workspacePath, "config.ts"),
+        path.join(config.workspacePath, "package.json"),
+        path.join(config.workspacePath, "tsconfig.json"),
+    ];
+
+    for (const filePath of requiredFiles) {
+        if (!fs.existsSync(filePath)) {
+            throw new Error(
+                `Workspace is missing ${path.basename(filePath)}: ${filePath}`,
+            );
+        }
+    }
+}
+
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    return String(error);
+}
+
 function printHelp(): void {
-    console.log(`Usage:
-  kcb config <command> [options]
+    console.log(`Usage: kcb config <command> [options]
 
 Commands:
-  list      List registered configs
-  default   Mark a config as default
-  remove    Remove a config from the registry
+  list       List registered configs
+  default    Mark a config as default
+  remove     Remove a config from the registry
+  relink     Relink registered workspaces to the current package install
 
 Options:
   -h, --help  Show this help`);
@@ -271,6 +376,20 @@ Options:
   -p, --pick           Choose a config from a numbered list
   --delete-workspace   Delete associated workspace files
   -h, --help           Show this help`);
+}
+
+function printConfigRelinkHelp(): void {
+    console.log(`Usage: kcb config relink [options] [config-name]
+
+Relink workspace package bridges to the current karabiner-config-builder install.
+
+Arguments:
+  config-name  Registered config name
+               If omitted, all registered configs are relinked.
+
+Options:
+  -p, --pick   Choose a config from a numbered list
+  -h, --help   Show this help`);
 }
 
 if (isDirectRun(import.meta.url)) {
