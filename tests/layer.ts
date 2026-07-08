@@ -1,6 +1,7 @@
 import {
     type KarabinerConfig,
     app,
+    bind,
     key,
     layer,
     profile,
@@ -19,18 +20,19 @@ export const config: KarabinerConfig = setup(
         rule(
             "Layer tests",
 
-            layer("caps_lock", {
+            layer("main", {
+                trigger: "caps_lock",
                 tapped: key("escape"),
 
-                bindings: {
-                    g: app("com.mitchellh.ghostty"),
+                bindings: [bind("g", app("com.mitchellh.ghostty"))],
 
-                    o: layer("open", {
-                        bindings: {
-                            c: app("com.openai.chat"),
-                        },
+                layers: [
+                    layer("open", {
+                        trigger: "o",
+
+                        bindings: [bind("c", app("com.openai.chat"))],
                     }),
-                },
+                ],
             }),
         ),
     ),

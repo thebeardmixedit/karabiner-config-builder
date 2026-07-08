@@ -3,12 +3,12 @@
 The `kcb` CLI manages the full Karabiner config workflow:
 
 ```txt
-init      initialize a KCB workspace
-config    manage registered config workspaces
-build     generate Karabiner JSON
-deploy    write active Karabiner config safely
-prefs     manage CLI preferences
-backup    manage backups
+init    initialize a KCB workspace
+config  manage registered config workspaces
+build   generate Karabiner JSON
+deploy  write active Karabiner config safely
+prefs   manage CLI preferences
+backup  manage backups
 ```
 
 ## Install
@@ -100,7 +100,9 @@ tsconfig.json
 node_modules/karabiner-config-builder
 ```
 
-`config.ts` is the build entrypoint. The workspace directory name becomes the registered config name.
+`config.ts` is the build entrypoint.
+
+The workspace directory name becomes the registered config name.
 
 ## `kcb config`
 
@@ -165,6 +167,50 @@ Options:
 
 By default, `config remove` removes only the registry entry. It does not delete workspace files unless `--delete-workspace` is passed.
 
+### `kcb config relink`
+
+Relink registered workspace package bridges to the current installed `karabiner-config-builder` package.
+
+```sh
+kcb config relink
+```
+
+By default, this relinks every registered config workspace.
+
+Relink one config:
+
+```sh
+kcb config relink my-config
+```
+
+Pick from registered configs:
+
+```sh
+kcb config relink --pick
+```
+
+Options:
+
+```txt
+-p, --pick  Choose a config from a numbered list
+-h, --help  Show help
+```
+
+Arguments:
+
+```txt
+config-name  Registered config name
+             If omitted, all registered configs are relinked.
+```
+
+This is useful after reinstalling the global CLI. Existing workspaces import `karabiner-config-builder` through:
+
+```txt
+<workspace>/node_modules/karabiner-config-builder
+```
+
+`kcb config relink` recreates that package bridge so workspaces use the current installed package.
+
 ## `kcb build`
 
 Generate Karabiner JSON from a registered config.
@@ -202,16 +248,16 @@ kcb build my-config --output ./karabiner.json
 Options:
 
 ```txt
--p, --pick           Choose a config from a numbered list
--o, --output <path>  Output path for generated Karabiner JSON
--h, --help           Show help
+-p, --pick     Choose a config from a numbered list
+-o, --output   Output path for generated Karabiner JSON
+-h, --help     Show help
 ```
 
 Arguments:
 
 ```txt
-config-name          Registered config name
-                     Default: default config from registry.json
+config-name  Registered config name
+             Default: default config from registry.json
 ```
 
 ## `kcb deploy`
@@ -260,23 +306,23 @@ In regular deploy mode, `kcb deploy` writes directly to:
 
 If the active Karabiner config is currently a symlink, regular deploy removes the symlink itself and writes a normal file.
 
-In symlink deploy mode, `kcb deploy --symlink-from <path>` writes generated JSON to the symlink target, then replaces Karabiner’s active config path with a symlink to that target.
+In symlink deploy mode, `kcb deploy --symlink-from` writes generated JSON to the symlink target, then replaces Karabiner’s active config path with a symlink to that target.
 
 Options:
 
 ```txt
--p, --pick                Choose a config from a numbered list
--s, --symlink-from <path> Write generated config here and symlink Karabiner to it
--f, --force               Skip deploy confirmation
---omit-backup             Skip backup before deploy
--h, --help                Show help
+-p, --pick          Choose a config from a numbered list
+-s, --symlink-from  Write generated config here and symlink Karabiner to it
+-f, --force         Skip deploy confirmation
+--omit-backup       Skip backup before deploy
+-h, --help          Show help
 ```
 
 Arguments:
 
 ```txt
-config-name               Registered config name
-                          Default: default config from registry.json
+config-name  Registered config name
+             Default: default config from registry.json
 ```
 
 ## `kcb prefs`
@@ -330,13 +376,15 @@ kcb prefs reset
 Current preferences:
 
 ```txt
-backupDir            Directory where backup folders are stored
-maxBackups           Maximum number of backups to keep
-backupBeforeDeploy   Whether deploy backs up before writing
-confirmDeploy        Whether deploy asks for confirmation
+backupDir           Directory where backup folders are stored
+maxBackups          Maximum number of backups to keep
+backupBeforeDeploy  Whether deploy backs up before writing
+confirmDeploy       Whether deploy asks for confirmation
 ```
 
-`prefs.json` stores only user overrides. Defaults live in code.
+`prefs.json` stores only user overrides.
+
+Defaults live in code.
 
 ## `kcb backup`
 
@@ -427,7 +475,6 @@ Initialize a temp workspace:
 ```sh
 rm -rf /tmp/kcb-home /tmp/kcb-workspace
 mkdir -p /tmp/kcb-home
-
 HOME=/tmp/kcb-home kcb init /tmp/kcb-workspace
 ```
 

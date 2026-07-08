@@ -31,6 +31,7 @@ karabiner-config-builder/
       deploy.ts
       index.ts
       init.ts
+      package-link.ts
       paths.ts
       picker.ts
       prefs.ts
@@ -83,7 +84,12 @@ Examples:
 
 ```ts
 inApp("com.apple.finder");
-fromDevice({ vendor_id: 1234, product_id: 5678 });
+
+fromDevice({
+    vendor_id: 1234,
+    product_id: 5678,
+});
+
 variableIs("layer", 1);
 ```
 
@@ -138,6 +144,7 @@ The CLI layer contains command entrypoints for:
 ```txt
 kcb init
 kcb config
+kcb config relink
 kcb build
 kcb deploy
 kcb prefs
@@ -166,26 +173,14 @@ kcb backup --help
 ## CLI support modules
 
 ```txt
-src/cli/args.ts
-  small schema-based argument parser
-
-src/cli/paths.ts
-  default paths and path resolution helpers
-
-src/cli/registry.ts
-  config workspace registry loading, saving, validation, and default config management
-
-src/cli/config-selection.ts
-  shared config resolution for default, named, and picked configs
-
-src/cli/picker.ts
-  dependency-free numbered picker
-
-src/cli/prefs.ts
-  CLI preference loading, writing, and reset behavior
-
-src/cli/run.ts
-  direct-run detection for command files
+src/cli/args.ts              small schema-based argument parser
+src/cli/paths.ts             default paths and path resolution helpers
+src/cli/registry.ts          config workspace registry loading, saving, validation, and default config management
+src/cli/config-selection.ts  shared config resolution for default, named, and picked configs
+src/cli/package-link.ts      workspace package bridge creation and relinking
+src/cli/picker.ts            dependency-free numbered picker
+src/cli/prefs.ts             CLI preference loading, writing, and reset behavior
+src/cli/run.ts               direct-run detection for command files
 ```
 
 ## Root implementation files
@@ -193,23 +188,12 @@ src/cli/run.ts
 Root files contain shared implementation used by CLI entrypoints.
 
 ```txt
-src/build.ts
-  load config, validate config, optionally write generated JSON
-
-src/backup.ts
-  back up active Karabiner config and prune backups
-
-src/restore.ts
-  restore Karabiner config from backup folders
-
-src/load.ts
-  load TypeScript config files
-
-src/write.ts
-  write Karabiner JSON
-
-src/index.ts
-  package export surface
+src/build.ts    load config, validate config, optionally write generated JSON
+src/backup.ts   back up active Karabiner config and prune backups
+src/restore.ts  restore Karabiner config from backup folders
+src/load.ts     load TypeScript config files
+src/write.ts    write Karabiner JSON
+src/index.ts    package export surface
 ```
 
 `src/restore.ts` remains a root implementation file even though restore is exposed through:
@@ -243,7 +227,19 @@ A default workspace looks like:
   package.json
   tsconfig.json
   node_modules/
-    karabiner-config-builder -> installed package
+    karabiner-config-builder -> current installed package
+```
+
+Workspace configs import `karabiner-config-builder` through the local package bridge at:
+
+```txt
+<workspace>/node_modules/karabiner-config-builder
+```
+
+After reinstalling the global CLI, registered workspaces can be relinked with:
+
+```sh
+kcb config relink
 ```
 
 Karabiner’s active config path remains:
@@ -275,7 +271,9 @@ Example:
 }
 ```
 
-The registry is app-managed state. It is not a user preference.
+The registry is app-managed state.
+
+It is not a user preference.
 
 ## Preferences
 

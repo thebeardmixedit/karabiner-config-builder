@@ -58,6 +58,7 @@ setup(
             name: "Default",
             selected: true,
         },
+
         rule("Basic bindings", bind("caps_lock", key("escape"))),
     ),
 );
@@ -97,6 +98,7 @@ profile(
         name: "Default",
         selected: true,
     },
+
     rule("Basic bindings", bind("caps_lock", key("escape"))),
     rule("App bindings", bind("f18", key("spacebar"))),
 );
@@ -110,6 +112,7 @@ profile(
         name: "Default",
         rules: [rule("Base rules", bind("caps_lock", key("escape")))],
     },
+
     rule("Extra rules", bind("f18", key("spacebar"))),
 );
 ```
@@ -134,6 +137,7 @@ Or with variadic entries:
 ```ts
 rule(
     "Basic bindings",
+
     bind("caps_lock", key("escape")),
     bind("f18", key("spacebar")),
 );
@@ -147,6 +151,7 @@ rule(
         description: "Pro Tools bindings",
         conditions: [inApp("com.avid.ProTools")],
     },
+
     bind("m", key("escape")),
 );
 ```
@@ -206,9 +211,9 @@ The main output is assigned to Karabiner’s `to`.
 The option mappings are:
 
 ```txt
-tapped    -> to_if_alone
-held      -> to_if_held_down
-finished  -> to_after_key_up
+tapped   -> to_if_alone
+held     -> to_if_held_down
+finished -> to_after_key_up
 ```
 
 ## Key combo helpers
@@ -250,23 +255,26 @@ rightShift("a");
 Generic helpers use Karabiner’s non-side-specific modifier names:
 
 ```txt
-cmd     -> command
-ctrl    -> control
-opt     -> option
-shift   -> shift
+cmd   -> command
+ctrl  -> control
+opt   -> option
+shift -> shift
 ```
 
 Side-specific helpers use exact side-specific modifiers:
 
 ```txt
-leftCmd     -> left_command
-rightCmd    -> right_command
-leftCtrl    -> left_control
-rightCtrl   -> right_control
-leftOpt     -> left_option
-rightOpt    -> right_option
-leftShift   -> left_shift
-rightShift  -> right_shift
+leftCmd   -> left_command
+rightCmd  -> right_command
+
+leftCtrl  -> left_control
+rightCtrl -> right_control
+
+leftOpt   -> left_option
+rightOpt  -> right_option
+
+leftShift -> left_shift
+rightShift -> right_shift
 ```
 
 Do not combine combo helpers with `options.modifiers` on the same `bind()` call:
@@ -416,15 +424,19 @@ combine(key("escape"), shell("echo done"));
 
 `layer()` creates a modal key layer backed by Karabiner variables.
 
+Layers use a semantic name plus an explicit trigger key:
+
 ```ts
-layer("caps_lock", {
+layer("nav", {
+    trigger: "caps_lock",
     tapped: key("escape"),
-    bindings: {
-        h: key("left_arrow"),
-        j: key("down_arrow"),
-        k: key("up_arrow"),
-        l: key("right_arrow"),
-    },
+
+    bindings: [
+        bind("h", key("left_arrow")),
+        bind("j", key("down_arrow")),
+        bind("k", key("up_arrow")),
+        bind("l", key("right_arrow")),
+    ],
 });
 ```
 
@@ -433,44 +445,111 @@ Use it inside a rule:
 ```ts
 rule(
     "Navigation layer",
-    layer("caps_lock", {
+
+    layer("nav", {
+        trigger: "caps_lock",
         tapped: key("escape"),
-        bindings: {
-            h: key("left_arrow"),
-            j: key("down_arrow"),
-            k: key("up_arrow"),
-            l: key("right_arrow"),
-        },
+
+        bindings: [
+            bind("h", key("left_arrow")),
+            bind("j", key("down_arrow")),
+            bind("k", key("up_arrow")),
+            bind("l", key("right_arrow")),
+        ],
     }),
 );
 ```
 
-Nested layers are supported:
+### Options
+
+| Option                 | Type                | Description                                                                              |
+| ---------------------- | ------------------- | ---------------------------------------------------------------------------------------- |
+| `trigger`              | `string`            | Required key code that activates the layer.                                              |
+| `tapped`               | `To \| To[]`        | Optional output when the trigger is tapped alone.                                        |
+| `bindings`             | `Manipulator[]`     | Bindings active while the layer is held. Usually created with `bind()`.                  |
+| `layers`               | `LayerDefinition[]` | Child layers active while the parent layer is held.                                      |
+| `holdDownMilliseconds` | `number`            | Hold duration applied to key outputs in `tapped`. Defaults to `100`. Use `0` to disable. |
+
+Layer bindings use the same `bind()` helper as top-level rules. That means modified inputs work inside layers:
+
+```ts
+layer("nav", {
+    trigger: "caps_lock",
+    tapped: key("escape"),
+
+    bindings: [
+        bind("h", key("left_arrow")),
+        bind(cmd("h"), key("left_arrow")),
+        bind(shift("h"), key("home")),
+    ],
+});
+```
+
+This distinction matters:
+
+```ts
+bind(cmd("h"), key("left_arrow"));
+```
+
+means:
+
+```txt
+layer + command + h -> left_arrow
+```
+
+while:
+
+```ts
+bind(
+    "h",
+    key("left_arrow", {
+        modifiers: ["left_command"],
+    }),
+);
+```
+
+means:
+
+```txt
+layer + h -> command + left_arrow
+```
+
+### Nested layers
+
+Nested layers go in the `layers` array:
 
 ```ts
 rule(
     "App launcher layer",
-    layer("caps_lock", {
+
+    layer("main", {
+        trigger: "caps_lock",
         tapped: key("escape"),
-        bindings: {
-            g: app("com.mitchellh.ghostty"),
-            o: layer("open", {
-                bindings: {
-                    c: app("com.openai.chat"),
-                    f: app("com.apple.finder"),
-                },
+
+        bindings: [bind("g", app("com.mitchellh.ghostty"))],
+
+        layers: [
+            layer("open", {
+                trigger: "o",
+
+                bindings: [
+                    bind("c", app("com.openai.chat")),
+                    bind("f", app("com.apple.finder")),
+                ],
             }),
-        },
+        ],
     }),
 );
 ```
 
-Layer names are converted into Karabiner variable names. For example:
+Layer names are converted into Karabiner variable names.
+
+For example:
 
 ```txt
-caps_lock       -> layer_caps_lock
-open            -> layer_open
-caps_lock open  -> layer_caps_lock_open
+nav      -> layer_nav
+open     -> layer_open
+nav open -> layer_nav_open
 ```
 
 ## Conditions
@@ -483,6 +562,7 @@ rule(
         description: "Finder only",
         conditions: [inApp("com.apple.finder")],
     },
+
     bind("f18", key("spacebar")),
 );
 ```

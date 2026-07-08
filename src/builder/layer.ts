@@ -3,35 +3,36 @@ import { variableIs } from "./conditions/index.js";
 
 const DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS = 100;
 
-export type Output = To | To[];
-export type Binding = Output | LayerDefinition;
+export type LayerOutput = To | To[];
 
 export interface LayerDefinition {
     kind: "layer";
     name: string;
-    key: string;
-    tapped?: Output;
-    bindings: Record<string, Binding>;
+    trigger: string;
+    tapped?: LayerOutput;
+    bindings: Manipulator[];
+    layers: LayerDefinition[];
     holdDownMilliseconds: number;
 }
 
 export interface LayerOptions {
-    tapped?: Output;
-    bindings?: Record<string, Binding>;
+    trigger: string;
+    tapped?: LayerOutput;
+    bindings?: Manipulator[];
+    layers?: LayerDefinition[];
     holdDownMilliseconds?: number;
 }
 
-export function layer(
-    keyOrName: string,
-    options: LayerOptions,
-): LayerDefinition {
-    validateLayerName(keyOrName);
+export function layer(name: string, options: LayerOptions): LayerDefinition {
+    validateLayerName(name);
+    validateLayerTrigger(options.trigger);
 
     return {
         kind: "layer",
-        name: keyOrName,
-        key: keyOrName,
-        bindings: options.bindings ?? {},
+        name,
+        trigger: options.trigger,
+        bindings: options.bindings ?? [],
+        layers: options.layers ?? [],
         holdDownMilliseconds:
             options.holdDownMilliseconds ??
             DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS,
@@ -46,39 +47,23 @@ export function compileLayer(
 ): Manipulator[] {
     const variableName = getLayerVariableName(definition, parentVariable);
     const layerPath = [...parentPath, definition.name];
-    const manipulators: Manipulator[] = [];
 
-    manipulators.push(
+    return [
         createLayerActivator(
             definition,
             variableName,
             layerPath,
             parentVariable,
         ),
-    );
 
-    for (const [key, binding] of Object.entries(definition.bindings)) {
-        if (isLayerDefinition(binding)) {
-            manipulators.push(
-                ...compileLayer(
-                    {
-                        ...binding,
-                        key,
-                    },
-                    variableName,
-                    layerPath,
-                ),
-            );
+        ...definition.bindings.map((binding) =>
+            createLayerBinding(binding, variableName, layerPath),
+        ),
 
-            continue;
-        }
-
-        manipulators.push(
-            createLayerBinding(key, binding, variableName, layerPath),
-        );
-    }
-
-    return manipulators;
+        ...definition.layers.flatMap((childLayer) =>
+            compileLayer(childLayer, variableName, layerPath),
+        ),
+    ];
 }
 
 function createLayerActivator(
@@ -91,7 +76,7 @@ function createLayerActivator(
         type: "basic",
         description: `Activate layer: ${formatLayerPath(layerPath)}`,
         from: {
-            key_code: definition.key,
+            key_code: definition.trigger,
         },
         to: [
             {
@@ -126,25 +111,23 @@ function createLayerActivator(
 }
 
 function createLayerBinding(
-    key: string,
-    output: Output,
+    binding: Manipulator,
     layerVariable: string,
     layerPath: string[],
 ): Manipulator {
-    const bindingPath = [...layerPath, key];
-
     return {
-        type: "basic",
-        description: `Run layer binding: ${formatLayerPath(bindingPath)}`,
-        from: {
-            key_code: key,
-        },
-        to: normalizeOutput(output),
-        conditions: [variableIs(layerVariable, 1)],
+        ...binding,
+        description:
+            binding.description ??
+            `Run layer binding: ${formatLayerPath(layerPath)}`,
+        conditions: [
+            ...(binding.conditions ?? []),
+            variableIs(layerVariable, 1),
+        ],
     };
 }
 
-function normalizeOutput(output: Output): To[] {
+function normalizeOutput(output: LayerOutput): To[] {
     return Array.isArray(output) ? output : [output];
 }
 
@@ -215,11 +198,8 @@ function validateLayerName(name: string): void {
     }
 }
 
-function isLayerDefinition(binding: Binding): binding is LayerDefinition {
-    return (
-        typeof binding === "object" &&
-        binding !== null &&
-        "kind" in binding &&
-        binding.kind === "layer"
-    );
+function validateLayerTrigger(trigger: string): void {
+    if (!trigger.trim()) {
+        throw new Error("Layer trigger must be a non-empty string.");
+    }
 }
