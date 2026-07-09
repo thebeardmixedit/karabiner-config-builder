@@ -24,16 +24,17 @@
     "scripts": {
         "check": "tsc --noEmit",
         "build": "tsc",
-        "compile": "tsc",
         "prepare": "npm run build",
         "cli": "tsx src/cli/index.ts",
         "smoke": "npm run check && npm run build && node dist/cli/index.js --help",
-        "smoke:init": "npm run build && rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace && mkdir -p /tmp/kcb-smoke-home && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js config list",
-        "smoke:build": "npm run build && rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace /tmp/kcb-smoke-build.json && mkdir -p /tmp/kcb-smoke-home && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js build > /tmp/kcb-smoke-build.json",
-        "smoke:deploy": "npm run build && rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace && mkdir -p /tmp/kcb-smoke-home && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js deploy --force --omit-backup",
-        "smoke:backup": "npm run build && rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace && mkdir -p /tmp/kcb-smoke-home && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js deploy --force --omit-backup && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup create && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup list",
-        "smoke:restore": "npm run build && rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace && mkdir -p /tmp/kcb-smoke-home && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js deploy --force --omit-backup && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup create && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup restore",
-        "smoke:all": "npm run smoke && npm run smoke:init && npm run smoke:build && npm run smoke:deploy && npm run smoke:backup && npm run smoke:restore"
+        "smoke:reset": "rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace /tmp/kcb-smoke-build.json && mkdir -p /tmp/kcb-smoke-home",
+        "smoke:init": "npm run smoke:reset && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js config list",
+        "smoke:build": "npm run smoke:reset && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js build > /tmp/kcb-smoke-build.json",
+        "smoke:deploy": "npm run smoke:reset && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js deploy --force --omit-backup",
+        "smoke:backup": "npm run smoke:reset && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js deploy --force --omit-backup && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup create && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup list",
+        "smoke:restore": "npm run smoke:reset && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js deploy --force --omit-backup && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup create && HOME=/tmp/kcb-smoke-home node dist/cli/index.js backup restore",
+        "smoke:all": "npm run smoke && npm run smoke:init && npm run smoke:build && npm run smoke:deploy && npm run smoke:backup && npm run smoke:restore",
+        "repack": "npm uninstall -g karabiner-config-builder && npm pack && npm install -g ./karabiner-config-builder-$npm_package_version.tgz && kcb config relink && rm karabiner-config-builder-$npm_package_version.tgz"
     },
     "keywords": [
         "karabiner",
