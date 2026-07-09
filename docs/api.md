@@ -326,6 +326,35 @@ key("tab", {
 });
 ```
 
+### `none()`
+
+Outputs Karabiner’s virtual no-op key.
+
+Use this when you want to swallow a key press or intentionally map something to nothing.
+
+```ts
+bind("caps_lock", none());
+```
+
+This emits:
+
+```json
+{
+    "key_code": "vk_none"
+}
+```
+
+Inside a layer:
+
+```ts
+layer("nav", {
+    trigger: "caps_lock",
+    tapped: key("escape"),
+
+    bindings: [bind("semicolon", none())],
+});
+```
+
 ### `shell()`
 
 Outputs a raw Karabiner `shell_command`.
