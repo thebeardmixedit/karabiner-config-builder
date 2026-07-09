@@ -4,34 +4,35 @@ import type {
     Device,
     FnFunctionKey,
     Profile,
-    Rule,
     SimpleModification,
     VirtualHidKeyboard,
 } from "../karabiner/index.js";
+import { compileGroup, type GroupDefinition } from "./group.js";
 
 export interface ProfileOptions {
     name: string;
     selected?: boolean;
-
     virtual_hid_keyboard?: VirtualHidKeyboard;
     simple_modifications?: SimpleModification[];
     fn_function_keys?: FnFunctionKey[];
     devices?: Device[];
-
     parameters?: ComplexModificationsParameters;
-    rules?: Rule[];
+    groups?: GroupDefinition[];
 }
 
 export function profile(options: ProfileOptions): Profile;
-export function profile(options: ProfileOptions, ...rules: Rule[]): Profile;
 export function profile(
     options: ProfileOptions,
-    ...extraRules: Rule[]
+    ...groups: GroupDefinition[]
+): Profile;
+export function profile(
+    options: ProfileOptions,
+    ...extraGroups: GroupDefinition[]
 ): Profile {
-    const rules = normalizeRules(options.rules, extraRules);
+    const groups = normalizeGroups(options.groups, extraGroups);
 
     const complex_modifications: ComplexModifications = {
-        rules,
+        rules: groups.map(compileGroup),
     };
 
     if (options.parameters) {
@@ -66,9 +67,9 @@ export function profile(
     return result;
 }
 
-function normalizeRules(
-    optionRules: Rule[] | undefined,
-    extraRules: Rule[],
-): Rule[] {
-    return [...(optionRules ?? []), ...extraRules];
+function normalizeGroups(
+    optionGroups: GroupDefinition[] | undefined,
+    extraGroups: GroupDefinition[],
+): GroupDefinition[] {
+    return [...(optionGroups ?? []), ...extraGroups];
 }

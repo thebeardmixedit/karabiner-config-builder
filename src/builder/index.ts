@@ -1,6 +1,6 @@
 export * from "./setup.js";
 export * from "./profile.js";
-export * from "./rule.js";
+export * from "./group.js";
 export * from "./remap.js";
 export * from "./bind.js";
 export * from "./combo.js";

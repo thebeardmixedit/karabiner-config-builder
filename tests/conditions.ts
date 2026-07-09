@@ -15,10 +15,10 @@ import {
     fromDevice,
     fromInputSource,
     fromKeyboardType,
+    group,
     inApp,
     key,
     profile,
-    rule,
     setup,
     variableIs,
     withDeviceConnected,
@@ -45,9 +45,9 @@ export const config: KarabinerConfig = setup({
                 virtual_hid_keyboard: { keyboard_type_v2: "ansi" },
             },
 
-            rule(
+            group(
                 {
-                    description: "Rule-level AND condition tests",
+                    description: "Group-level AND condition tests",
                     conditions: [inApp("com.apple.finder")],
                 },
 
@@ -58,7 +58,7 @@ export const config: KarabinerConfig = setup({
                 }),
             ),
 
-            rule(
+            group(
                 "Condition helper tests",
 
                 bind("f10", key("escape"), {

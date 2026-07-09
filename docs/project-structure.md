@@ -10,10 +10,10 @@ karabiner-config-builder/
       utils/
       bind.ts
       combo.ts
+      group.ts
       layer.ts
       profile.ts
       remap.ts
-      rule.ts
       setup.ts
       index.ts
 
@@ -64,7 +64,7 @@ It contains helpers like:
 
 - `setup()`
 - `profile()`
-- `rule()`
+- `group()`
 - `bind()`
 - `layer()`
 - key combo helpers
@@ -74,7 +74,25 @@ It contains helpers like:
 
 This layer may provide TypeScript conveniences that do not exist directly in Karabiner JSON.
 
-For example, rule-level conditions are builder sugar. Karabiner itself stores conditions on individual manipulators.
+For example, group-level conditions are builder sugar. Karabiner itself stores conditions on individual manipulators.
+
+Top-level KCB groups compile to Karabiner complex modification rules. Nested groups compile away into inherited manipulator conditions.
+
+## `src/builder/group.ts`
+
+`group.ts` defines KCB’s main organization primitive.
+
+A top-level group inside a profile becomes a Karabiner rule.
+
+Nested groups are builder-only condition scopes.
+
+Groups can contain:
+
+- manipulators from `bind()`
+- layers from `layer()`
+- nested groups from `group()`
+
+The group compiler flattens entries into Karabiner manipulators and applies inherited conditions.
 
 ## `src/builder/conditions`
 
@@ -103,6 +121,7 @@ Examples:
 
 ```ts
 key("escape");
+none();
 shell("echo hello");
 script("~/.dotfiles/bin/my-script");
 app("com.apple.finder");
@@ -137,6 +156,8 @@ The Karabiner layer contains TypeScript interfaces and validation for the genera
 
 This layer should represent Karabiner’s JSON structure, not builder-only conveniences.
 
+Karabiner still has complex modification rules in the generated JSON. KCB’s public authoring API uses `group()` instead of a public `rule()` helper.
+
 ## `src/cli`
 
 The CLI layer contains command entrypoints for:
@@ -157,6 +178,13 @@ Top-level CLI help is intentionally shallow:
 
 ```sh
 kcb --help
+```
+
+Top-level version output is available with:
+
+```sh
+kcb --version
+kcb -v
 ```
 
 Command-level help is handled by the command itself:
@@ -342,6 +370,12 @@ Run CLI from source:
 
 ```sh
 npm run cli -- --help
+```
+
+Repack and reinstall globally during development:
+
+```sh
+npm run repack
 ```
 
 Run all smoke tests:

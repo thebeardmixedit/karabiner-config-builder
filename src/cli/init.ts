@@ -102,10 +102,10 @@ function createConfigFile(workspacePath: string): void {
         `import {
     bind,
     cmd,
+    group,
     inApp,
     key,
     profile,
-    rule,
     setup,
 } from "karabiner-config-builder";
 
@@ -118,7 +118,7 @@ export default setup(
                 keyboard_type_v2: "ansi",
             },
         },
-        rule(
+        group(
             "Starter bindings",
 
             // Basic remap: Caps Lock acts as Escape.
@@ -130,7 +130,7 @@ export default setup(
             bind(cmd("spacebar"), key("f18")),
         ),
 
-        rule(
+        group(
             {
                 description: "Finder bindings",
                 conditions: [inApp("com.apple.finder")],
@@ -147,16 +147,19 @@ Example layer:
 
 import { layer } from "karabiner-config-builder";
 
-rule(
+group(
     "Navigation layer",
-    layer("caps_lock", {
+
+    layer("nav", {
+        trigger: "caps_lock",
         tapped: key("escape"),
-        bindings: {
-            h: key("left_arrow"),
-            j: key("down_arrow"),
-            k: key("up_arrow"),
-            l: key("right_arrow"),
-        },
+
+        bindings: [
+            bind("h", key("left_arrow")),
+            bind("j", key("down_arrow")),
+            bind("k", key("up_arrow")),
+            bind("l", key("right_arrow")),
+        ],
     }),
 );
 */

@@ -2,10 +2,10 @@ import {
     type KarabinerConfig,
     app,
     bind,
+    group,
     key,
     layer,
     profile,
-    rule,
     setup,
 } from "../dist/index.js";
 
@@ -17,7 +17,7 @@ export const config: KarabinerConfig = setup(
             virtual_hid_keyboard: { keyboard_type_v2: "ansi" },
         },
 
-        rule(
+        group(
             "Layer tests",
 
             layer("main", {
