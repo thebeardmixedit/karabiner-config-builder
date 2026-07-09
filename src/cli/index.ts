@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { runBackupCommand } from "./backup.js";
 import { runBuildCommand } from "./build.js";
 import { runConfigCommand } from "./config.js";
@@ -7,10 +11,19 @@ import { runDeployCommand } from "./deploy.js";
 import { runInitCommand } from "./init.js";
 import { runPrefsCommand } from "./prefs.js";
 
+interface PackageJson {
+    version?: string;
+}
+
 const [command, ...commandArgs] = process.argv.slice(2);
 
 if (!command || command === "-h" || command === "--help") {
     printHelp();
+    process.exit(0);
+}
+
+if (command === "-v" || command === "--version") {
+    printVersion();
     process.exit(0);
 }
 
@@ -56,5 +69,25 @@ Commands:
   prefs     Read, write, and reset CLI preferences
 
 Options:
-  -h, --help  Show this help`);
+  -h, --help     Show this help
+  -v, --version  Print version`);
+}
+
+function printVersion(): void {
+    console.log(getPackageVersion());
+}
+
+function getPackageVersion(): string {
+    const packageJsonPath = path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "..",
+        "..",
+        "package.json",
+    );
+
+    const packageJson = JSON.parse(
+        fs.readFileSync(packageJsonPath, "utf8"),
+    ) as PackageJson;
+
+    return packageJson.version ?? "unknown";
 }
