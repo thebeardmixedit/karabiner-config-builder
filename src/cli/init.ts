@@ -198,6 +198,8 @@ function createTsconfigJson(workspacePath: string): void {
                     strict: true,
                     types: ["node"],
                     skipLibCheck: true,
+                    allowImportingTsExtensions: true,
+                    noEmit: true,
                 },
                 include: ["config.ts", "**/*.ts"],
             },
