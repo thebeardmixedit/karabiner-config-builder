@@ -3,9 +3,9 @@ import type {
     FromModifiers,
     KeyCode,
     Manipulator,
+    Modifier,
     To,
 } from "../karabiner/index.js";
-
 import { isKeyCombo, type KeyCombo } from "./combo.js";
 
 type Output = To | To[];
@@ -15,7 +15,6 @@ interface BindOptions {
     description?: string;
     modifiers?: FromModifiers;
     conditions?: Condition[];
-
     tapped?: Output;
     held?: Output;
     finished?: Output;
@@ -26,15 +25,30 @@ interface BindFromKey {
     modifiers?: FromModifiers;
 }
 
+const MODIFIER_KEY_CODES = new Set<KeyCode>([
+    "caps_lock",
+    "left_command",
+    "left_control",
+    "left_option",
+    "left_shift",
+    "right_command",
+    "right_control",
+    "right_option",
+    "right_shift",
+    "fn",
+]);
+
 export function bind(
     from: BindFrom,
     to: Output,
     options: BindOptions = {},
 ): Manipulator {
+    const fromKey = createFrom(from, options);
+
     const manipulator: Manipulator = {
         type: "basic",
-        from: createFrom(from, options),
-        to: normalizeOutput(to),
+        from: fromKey,
+        to: normalizeBindOutput(to, fromKey, options),
     };
 
     if (options.description) {
@@ -75,7 +89,8 @@ function createFrom(from: BindFrom, options: BindOptions): BindFromKey {
 
     if (options.modifiers) {
         throw new Error(
-            "bind() received modifiers in both the key combo and options.modifiers. Use combo helpers or options.modifiers, not both.",
+            "bind() received modifiers in both the key combo and options.modifiers.\n" +
+                "Use combo helpers or options.modifiers, not both.",
         );
     }
 
@@ -85,6 +100,45 @@ function createFrom(from: BindFrom, options: BindOptions): BindFromKey {
     };
 }
 
+function normalizeBindOutput(
+    output: Output,
+    from: BindFromKey,
+    options: BindOptions,
+): To[] {
+    const normalizedOutput = normalizeOutput(output);
+
+    if (!options.tapped || !isModifierKeyCode(from.key_code)) {
+        return normalizedOutput;
+    }
+
+    return normalizedOutput.map((event) =>
+        applyLazyModifierOutput(event, from.key_code),
+    );
+}
+
+function applyLazyModifierOutput(event: To, fromKeyCode: KeyCode): To {
+    if (event.key_code !== fromKeyCode) {
+        return event;
+    }
+
+    if (!isModifierKeyCode(event.key_code)) {
+        return event;
+    }
+
+    if (event.lazy !== undefined) {
+        return event;
+    }
+
+    return {
+        ...event,
+        lazy: true,
+    };
+}
+
 function normalizeOutput(output: Output): To[] {
     return Array.isArray(output) ? output : [output];
+}
+
+function isModifierKeyCode(keyCode: KeyCode | undefined): keyCode is Modifier {
+    return keyCode !== undefined && MODIFIER_KEY_CODES.has(keyCode);
 }
