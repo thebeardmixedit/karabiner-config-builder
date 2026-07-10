@@ -1,5 +1,5 @@
 export * from "./app.js";
-export * from "./combine.js";
+export * from "./macro.js";
 export * from "./key.js";
 export * from "./none.js";
 export * from "./script.js";

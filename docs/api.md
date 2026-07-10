@@ -486,15 +486,15 @@ Opens a URL.
 url("https://karabiner-elements.pqrs.org/");
 ```
 
-### `combine()`
+### `macro()`
 
-Combines multiple outputs into one output array.
+macros multiple outputs into one output array.
 
 ```ts
-combine(key("escape"), shell("echo done"));
+macro(key("escape"), shell("echo done"));
 ```
 
-`combine()` requires at least one output.
+`macro()` requires at least one output.
 
 ## `layer()`
 
