@@ -1,6 +1,6 @@
 {
     "name": "karabiner-config-builder",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "private": false,
     "description": "A TypeScript builder for generating karabiner.json.",
     "type": "module",
