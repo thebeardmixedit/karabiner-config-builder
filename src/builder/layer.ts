@@ -197,10 +197,8 @@ function createLayerBlockers(
         return [];
     }
 
-    const ownedKeys = getLayerOwnedKeys(definition);
-
     return dedupeKeys(blockKeys)
-        .filter((keyCode) => !ownedKeys.has(keyCode))
+        .filter((keyCode) => keyCode !== definition.trigger)
         .map((keyCode) =>
             createLayerBlocker(keyCode, layerVariable, layerPath),
         );
@@ -219,6 +217,9 @@ function createLayerBlocker(
         ])}`,
         from: {
             key_code: keyCode,
+            modifiers: {
+                optional: ["any"],
+            },
         },
         to: [
             {
@@ -247,34 +248,6 @@ function resolveBlockKeys(block: LayerBlock | undefined): string[] {
     }
 
     return block;
-}
-
-function getLayerOwnedKeys(definition: LayerDefinition): Set<string> {
-    return new Set([
-        definition.trigger,
-        ...definition.bindings.flatMap(getManipulatorInputKeys),
-        ...definition.layers.map((layerDefinition) => layerDefinition.trigger),
-    ]);
-}
-
-function getManipulatorInputKeys(manipulator: Manipulator): string[] {
-    const from = manipulator.from;
-
-    if (!from) {
-        return [];
-    }
-
-    if (from.key_code) {
-        return [from.key_code];
-    }
-
-    if (from.simultaneous) {
-        return from.simultaneous.flatMap((event) =>
-            event.key_code ? [event.key_code] : [],
-        );
-    }
-
-    return [];
 }
 
 function dedupeKeys(keys: string[]): string[] {
