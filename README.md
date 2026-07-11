@@ -394,10 +394,10 @@ group(
 );
 ```
 
-Layer bindings use the same `bind()` helper as regular group bindings, so modified inputs work inside layers too:
+Layer bindings use the same `bind()` helper as regular group bindings, so combo helpers work for modified inputs and outputs:
 
 ```ts
-import { bind, cmd, key, layer } from "karabiner-config-builder";
+import { bind, cmd, key, layer, leftCmd } from "karabiner-config-builder";
 
 layer("nav", {
     trigger: "caps_lock",
@@ -406,12 +406,7 @@ layer("nav", {
     bindings: [
         bind("h", key("left_arrow")),
         bind(cmd("h"), key("left_arrow")),
-        bind(
-            "l",
-            key("right_arrow", {
-                modifiers: ["left_command"],
-            }),
-        ),
+        bind("l", key(leftCmd("right_arrow"))),
     ],
 });
 ```
@@ -431,18 +426,44 @@ layer + command + h -> left_arrow
 while:
 
 ```ts
-bind(
-    "h",
-    key("left_arrow", {
-        modifiers: ["left_command"],
-    }),
-);
+bind("h", key(leftCmd("left_arrow")));
 ```
 
 means:
 
 ```txt
-layer + h -> command + left_arrow
+layer + h -> left command + left_arrow
+```
+
+Generic modifier helpers are available when either side is acceptable:
+
+```ts
+cmd("h");
+ctrl("h");
+opt("h");
+shift("h");
+```
+
+Side-specific helpers are available when the physical modifier side matters:
+
+```ts
+leftCmd("h");
+rightCmd("h");
+
+leftCtrl("h");
+rightCtrl("h");
+
+leftOpt("h");
+rightOpt("h");
+
+leftShift("h");
+rightShift("h");
+```
+
+Combo helpers can be nested:
+
+```ts
+bind(cmd(shift("p")), key(leftCmd(opt("p"))));
 ```
 
 Nested layers go in the `layers` array:

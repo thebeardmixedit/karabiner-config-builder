@@ -253,7 +253,9 @@ finished -> to_after_key_up
 
 ## Key combo helpers
 
-Combo helpers let you express modified input keys without manually writing Karabiner modifier objects.
+Combo helpers express modified input and output keys without manually writing Karabiner modifier objects.
+
+Use them directly as `bind()` inputs:
 
 ```ts
 import { bind, cmd, key, shift } from "karabiner-config-builder";
@@ -262,7 +264,28 @@ bind(cmd("spacebar"), key("f18"));
 bind(cmd(shift("p")), key("print_screen"));
 ```
 
-Generic modifier helpers:
+Use them inside `key()` for modified outputs:
+
+```ts
+bind("spacebar", key(cmd("spacebar")));
+bind("p", key(cmd(shift("p"))));
+```
+
+They can be used on both sides of a binding:
+
+```ts
+bind(cmd("h"), key(opt("left_arrow")));
+```
+
+That means:
+
+```txt
+command + h -> option + left_arrow
+```
+
+### Generic modifiers
+
+Generic helpers match either side of the modifier when used as an input:
 
 ```ts
 cmd("a");
@@ -271,7 +294,27 @@ opt("a");
 shift("a");
 ```
 
-Side-specific helpers:
+They produce the corresponding generic modifier when used as an output:
+
+```ts
+key(cmd("a"));
+key(ctrl("a"));
+key(opt("a"));
+key(shift("a"));
+```
+
+Generic helpers map to Karabiner’s non-side-specific modifier names:
+
+```txt
+cmd   -> command
+ctrl  -> control
+opt   -> option
+shift -> shift
+```
+
+### Side-specific modifiers
+
+Use side-specific helpers when the physical modifier side matters:
 
 ```ts
 leftCmd("a");
@@ -287,16 +330,7 @@ leftShift("a");
 rightShift("a");
 ```
 
-Generic helpers use Karabiner’s non-side-specific modifier names:
-
-```txt
-cmd   -> command
-ctrl  -> control
-opt   -> option
-shift -> shift
-```
-
-Side-specific helpers use exact side-specific modifiers:
+They map to exact side-specific modifiers:
 
 ```txt
 leftCmd    -> left_command
@@ -312,10 +346,49 @@ leftShift  -> left_shift
 rightShift -> right_shift
 ```
 
-Do not combine combo helpers with `options.modifiers` on the same `bind()` call:
+For example:
 
 ```ts
-// Invalid
+bind(leftCmd("h"), key("left_arrow"));
+bind("h", key(rightCmd("right_arrow")));
+```
+
+### Multiple modifiers
+
+Nest helpers to build combinations:
+
+```ts
+cmd(shift("p"));
+leftCmd(rightOpt("h"));
+ctrl(opt(shift("spacebar")));
+```
+
+The same nesting works for outputs:
+
+```ts
+key(cmd(shift("p")));
+key(leftCmd(rightOpt("h")));
+```
+
+Repeated modifiers are deduplicated:
+
+```ts
+cmd(cmd("h"));
+```
+
+is equivalent to:
+
+```ts
+cmd("h");
+```
+
+### Raw modifier options
+
+Do not provide modifiers through both a combo helper and the corresponding raw modifier option.
+
+For binding inputs, this is invalid:
+
+```ts
 bind(cmd("spacebar"), key("f18"), {
     modifiers: {
         mandatory: ["left_shift"],
@@ -323,7 +396,20 @@ bind(cmd("spacebar"), key("f18"), {
 });
 ```
 
-Use one style or the other.
+For key outputs, this is invalid:
+
+```ts
+key(cmd("spacebar"), {
+    modifiers: ["left_shift"],
+});
+```
+
+Use nested combo helpers instead:
+
+```ts
+bind(cmd(shift("spacebar")), key("f18"));
+key(cmd(shift("spacebar")));
+```
 
 ## `remap()`
 
@@ -347,13 +433,46 @@ Output helpers create Karabiner `to` events.
 
 ### `key()`
 
-Outputs a key code.
+Outputs a key code:
 
 ```ts
 key("escape");
 ```
 
-With modifiers:
+Combo helpers add output modifiers:
+
+```ts
+key(cmd("tab"));
+key(leftCmd("tab"));
+key(cmd(shift("p")));
+key(leftCmd(rightOpt("h")));
+```
+
+Generic modifier helpers produce generic modifiers:
+
+```ts
+key(cmd("tab"));
+```
+
+produces:
+
+```txt
+command + tab
+```
+
+Side-specific helpers produce exact modifiers:
+
+```ts
+key(leftCmd("tab"));
+```
+
+produces:
+
+```txt
+left command + tab
+```
+
+Raw modifier arrays remain available when working directly with Karabiner-style values:
 
 ```ts
 key("tab", {
@@ -361,7 +480,36 @@ key("tab", {
 });
 ```
 
-With Karabiner output options:
+Prefer combo helpers for normal config authoring:
+
+```ts
+key(leftCmd("tab"));
+```
+
+Do not provide modifiers through both a combo helper and `options.modifiers`:
+
+```ts
+// Invalid
+key(cmd("tab"), {
+    modifiers: ["left_shift"],
+});
+```
+
+Nest combo helpers instead:
+
+```ts
+key(cmd(leftShift("tab")));
+```
+
+Karabiner output options can still be provided alongside a combo:
+
+```ts
+key(cmd("tab"), {
+    repeat: false,
+});
+```
+
+Other output options include:
 
 ```ts
 key("caps_lock", {
@@ -371,6 +519,20 @@ key("caps_lock", {
 key("left_command", {
     lazy: true,
 });
+```
+
+Passing a modifier key code outputs that physical modifier key:
+
+```ts
+key("left_command", {
+    lazy: true,
+});
+```
+
+That is distinct from wrapping another key with a modifier:
+
+```ts
+key(leftCmd("h"));
 ```
 
 ### `none()`
@@ -546,7 +708,7 @@ group(
 | `layers`               | `LayerDefinition[]` | Child layers active while the parent layer is held.                                      |
 | `holdDownMilliseconds` | `number`            | Hold duration applied to key outputs in `tapped`. Defaults to `100`. Use `0` to disable. |
 
-Layer bindings use the same `bind()` helper as regular group bindings. That means modified inputs work inside layers:
+Layer bindings use the same `bind()` helper as regular group bindings. Combo helpers therefore work for both layer inputs and outputs:
 
 ```ts
 layer("nav", {
@@ -557,6 +719,7 @@ layer("nav", {
         bind("h", key("left_arrow")),
         bind(cmd("h"), key("left_arrow")),
         bind(shift("h"), key("home")),
+        bind("l", key(leftCmd("right_arrow"))),
     ],
 });
 ```
@@ -576,18 +739,13 @@ layer + command + h -> left_arrow
 while:
 
 ```ts
-bind(
-    "h",
-    key("left_arrow", {
-        modifiers: ["left_command"],
-    }),
-);
+bind("h", key(leftCmd("left_arrow")));
 ```
 
 means:
 
 ```txt
-layer + h -> command + left_arrow
+layer + h -> left command + left_arrow
 ```
 
 ### Nested layers
