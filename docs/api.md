@@ -513,7 +513,7 @@ Other output options include:
 
 ```ts
 key("caps_lock", {
-    holdDownMilliseconds: 100,
+    holdDownMs: 100,
 });
 
 key("left_command", {
@@ -700,13 +700,13 @@ group(
 
 ### Options
 
-| Option                 | Type                | Description                                                                              |
-| ---------------------- | ------------------- | ---------------------------------------------------------------------------------------- |
-| `trigger`              | `string`            | Required key code that activates the layer.                                              |
-| `tapped`               | `To \| To[]`        | Optional output when the trigger is tapped alone.                                        |
-| `bindings`             | `Manipulator[]`     | Bindings active while the layer is held. Usually created with `bind()`.                  |
-| `layers`               | `LayerDefinition[]` | Child layers active while the parent layer is held.                                      |
-| `holdDownMilliseconds` | `number`            | Hold duration applied to key outputs in `tapped`. Defaults to `100`. Use `0` to disable. |
+| Option       | Type                | Description                                                                              |
+| ------------ | ------------------- | ---------------------------------------------------------------------------------------- |
+| `trigger`    | `string`            | Required key code that activates the layer.                                              |
+| `tapped`     | `To \| To[]`        | Optional output when the trigger is tapped alone.                                        |
+| `bindings`   | `Manipulator[]`     | Bindings active while the layer is held. Usually created with `bind()`.                  |
+| `layers`     | `LayerDefinition[]` | Child layers active while the parent layer is held.                                      |
+| `holdDownMs` | `number`            | Hold duration applied to key outputs in `tapped`. Defaults to `100`. Use `0` to disable. |
 
 Layer bindings use the same `bind()` helper as regular group bindings. Combo helpers therefore work for both layer inputs and outputs:
 

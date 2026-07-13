@@ -6,7 +6,7 @@ export interface KeyOptions {
     lazy?: boolean;
     repeat?: boolean;
     halt?: boolean;
-    holdDownMilliseconds?: number;
+    holdDownMs?: number;
 }
 
 export function key(input: KeyCode | KeyCombo, options: KeyOptions = {}): To {
@@ -36,8 +36,8 @@ function createKeyOutput(key_code: KeyCode, options: KeyOptions = {}): To {
         ...(options.lazy !== undefined ? { lazy: options.lazy } : {}),
         ...(options.repeat !== undefined ? { repeat: options.repeat } : {}),
         ...(options.halt !== undefined ? { halt: options.halt } : {}),
-        ...(options.holdDownMilliseconds !== undefined
-            ? { hold_down_milliseconds: options.holdDownMilliseconds }
+        ...(options.holdDownMs !== undefined
+            ? { hold_down_milliseconds: options.holdDownMs }
             : {}),
     };
 }

@@ -1,7 +1,7 @@
 import type { Manipulator, To } from "../karabiner/index.js";
 import { variableIs } from "./conditions/index.js";
 
-const DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS = 100;
+const DEFAULT_LAYER_HOLD_DOWN_MS = 100;
 
 const LETTER_KEYS = [
     "a",
@@ -67,7 +67,7 @@ export interface LayerDefinition {
     bindings: Manipulator[];
     layers: LayerDefinition[];
     block?: LayerBlock;
-    holdDownMilliseconds: number;
+    holdDownMs: number;
     tapTimeoutMs?: number;
 }
 
@@ -77,7 +77,7 @@ export interface LayerOptions {
     bindings?: Manipulator[];
     layers?: LayerDefinition[];
     block?: LayerBlock;
-    holdDownMilliseconds?: number;
+    holdDownMs?: number;
     tapTimeoutMs?: number;
 }
 
@@ -92,9 +92,7 @@ export function layer(name: string, options: LayerOptions): LayerDefinition {
         trigger: options.trigger,
         bindings: options.bindings ?? [],
         layers: options.layers ?? [],
-        holdDownMilliseconds:
-            options.holdDownMilliseconds ??
-            DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS,
+        holdDownMs: options.holdDownMs ?? DEFAULT_LAYER_HOLD_DOWN_MS,
         ...(options.block !== undefined ? { block: options.block } : {}),
         ...(options.tapped ? { tapped: options.tapped } : {}),
         ...(options.tapTimeoutMs !== undefined
@@ -164,7 +162,7 @@ function createLayerActivator(
     if (definition.tapped) {
         manipulator.to_if_alone = applyLayerHoldDownMilliseconds(
             normalizeOutput(definition.tapped),
-            definition.holdDownMilliseconds,
+            definition.holdDownMs,
         );
     }
 
@@ -272,9 +270,9 @@ function normalizeOutput(output: LayerOutput): To[] {
 
 function applyLayerHoldDownMilliseconds(
     output: To[],
-    holdDownMilliseconds: number,
+    holdDownMs: number,
 ): To[] {
-    if (holdDownMilliseconds <= 0) {
+    if (holdDownMs <= 0) {
         return output;
     }
 
@@ -289,7 +287,7 @@ function applyLayerHoldDownMilliseconds(
 
         return {
             ...event,
-            hold_down_milliseconds: holdDownMilliseconds,
+            hold_down_milliseconds: holdDownMs,
         };
     });
 }
