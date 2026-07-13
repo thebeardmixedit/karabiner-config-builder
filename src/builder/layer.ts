@@ -68,6 +68,7 @@ export interface LayerDefinition {
     layers: LayerDefinition[];
     block?: LayerBlock;
     holdDownMilliseconds: number;
+    tapTimeoutMs?: number;
 }
 
 export interface LayerOptions {
@@ -77,11 +78,13 @@ export interface LayerOptions {
     layers?: LayerDefinition[];
     block?: LayerBlock;
     holdDownMilliseconds?: number;
+    tapTimeoutMs?: number;
 }
 
 export function layer(name: string, options: LayerOptions): LayerDefinition {
     validateLayerName(name);
     validateLayerTrigger(options.trigger);
+    validateTapTimeoutMs(options.tapTimeoutMs);
 
     return {
         kind: "layer",
@@ -94,6 +97,9 @@ export function layer(name: string, options: LayerOptions): LayerDefinition {
             DEFAULT_LAYER_HOLD_DOWN_MILLISECONDS,
         ...(options.block !== undefined ? { block: options.block } : {}),
         ...(options.tapped ? { tapped: options.tapped } : {}),
+        ...(options.tapTimeoutMs !== undefined
+            ? { tapTimeoutMs: options.tapTimeoutMs }
+            : {}),
     };
 }
 
@@ -160,6 +166,12 @@ function createLayerActivator(
             normalizeOutput(definition.tapped),
             definition.holdDownMilliseconds,
         );
+    }
+
+    if (definition.tapTimeoutMs !== undefined) {
+        manipulator.parameters = {
+            "basic.to_if_alone_timeout_milliseconds": definition.tapTimeoutMs,
+        };
     }
 
     if (parentVariable) {
@@ -328,5 +340,11 @@ function validateLayerName(name: string): void {
 function validateLayerTrigger(trigger: string): void {
     if (!trigger.trim()) {
         throw new Error("Layer trigger must be a non-empty string.");
+    }
+}
+
+function validateTapTimeoutMs(tapTimeoutMs: number | undefined): void {
+    if (tapTimeoutMs !== undefined && tapTimeoutMs < 0) {
+        throw new Error("Layer tapTimeoutMs must be zero or greater.");
     }
 }

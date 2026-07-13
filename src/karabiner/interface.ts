@@ -398,7 +398,13 @@ export interface ComplexModificationsParameters {
     mouse_motion_to_scroll_speed?: number;
 }
 
-export interface ManipulatorParameters extends ComplexModificationsParameters {}
+export interface ManipulatorParameters {
+    "basic.simultaneous_threshold_milliseconds"?: number;
+    "basic.to_delayed_action_delay_milliseconds"?: number;
+    "basic.to_if_alone_timeout_milliseconds"?: number;
+    "basic.to_if_held_down_threshold_milliseconds"?: number;
+    "mouse_motion_to_scroll.speed"?: number;
+}
 
 export interface ProfileParameters {
     delay_milliseconds_before_open_device?: number;
