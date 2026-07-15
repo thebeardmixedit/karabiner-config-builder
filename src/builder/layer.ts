@@ -1,5 +1,6 @@
 import type { Manipulator, To } from "../karabiner/index.js";
 import { variableIs } from "./conditions/index.js";
+import { allowCapsLock } from "./utils/index.js";
 
 const DEFAULT_LAYER_HOLD_DOWN_MS = 100;
 
@@ -140,6 +141,7 @@ function createLayerActivator(
         description: `Activate layer: ${formatLayerPath(layerPath)}`,
         from: {
             key_code: definition.trigger,
+            modifiers: allowCapsLock(),
         },
         to: [
             {

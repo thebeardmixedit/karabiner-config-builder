@@ -7,6 +7,7 @@ import type {
     To,
 } from "../karabiner/index.js";
 import { isKeyCombo, type KeyCombo } from "./combo.js";
+import { allowCapsLock } from "./utils/index.js";
 
 type Output = To | To[];
 type BindFrom = KeyCode | KeyCombo;
@@ -76,15 +77,10 @@ export function bind(
 
 function createFrom(from: BindFrom, options: BindOptions): BindFromKey {
     if (!isKeyCombo(from)) {
-        const result: BindFromKey = {
+        return {
             key_code: from,
+            modifiers: allowCapsLock(options.modifiers),
         };
-
-        if (options.modifiers) {
-            result.modifiers = options.modifiers;
-        }
-
-        return result;
     }
 
     if (options.modifiers) {
@@ -96,7 +92,7 @@ function createFrom(from: BindFrom, options: BindOptions): BindFromKey {
 
     return {
         key_code: from.key_code,
-        modifiers: from.modifiers,
+        modifiers: allowCapsLock(from.modifiers),
     };
 }
 
