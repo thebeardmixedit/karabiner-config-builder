@@ -9,7 +9,7 @@ karabiner-config-builder/
       outputs/
       utils/
       bind.ts
-      combo.ts
+      modifier.ts
       group.ts
       layer.ts
       profile.ts
@@ -67,7 +67,7 @@ It contains helpers like:
 - `group()`
 - `bind()`
 - `layer()`
-- key combo helpers
+- modifier helpers
 - output helpers
 - condition helpers
 - integration helpers

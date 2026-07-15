@@ -394,7 +394,7 @@ group(
 );
 ```
 
-Layer bindings use the same `bind()` helper as regular group bindings, so combo helpers work for modified inputs and outputs:
+Layer bindings use the same `bind()` helper as regular group bindings, so modifier helpers work for modified inputs and outputs:
 
 ```ts
 import { bind, cmd, key, layer, leftCmd } from "karabiner-config-builder";
@@ -444,23 +444,28 @@ opt("h");
 shift("h");
 ```
 
+Grouped modifier helpers are available for common multi-modifier combinations:
+
+```ts
+hyper("h"); // command + control + option + shift
+meh("h"); // control + option + shift
+trio("h"); // command + control + option
+```
+
 Side-specific helpers are available when the physical modifier side matters:
 
 ```ts
 leftCmd("h");
 rightCmd("h");
-
 leftCtrl("h");
 rightCtrl("h");
-
 leftOpt("h");
 rightOpt("h");
-
 leftShift("h");
 rightShift("h");
 ```
 
-Combo helpers can be nested:
+Modifier helpers can be nested:
 
 ```ts
 bind(cmd(shift("p")), key(leftCmd(opt("p"))));

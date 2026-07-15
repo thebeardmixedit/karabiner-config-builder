@@ -24,15 +24,15 @@ export const config: KarabinerConfig = setup({
                 "Bind lifecycle tests",
 
                 bind(cmd("spacebar"), key("spacebar"), {
-                    description: "Generic command combo test",
+                    description: "Generic command modifier test",
                 }),
 
                 bind(shift(cmd("p")), key("escape"), {
-                    description: "Nested combo test",
+                    description: "Nested modifier test",
                 }),
 
                 bind(leftCtrl("m"), key("mute"), {
-                    description: "Side-specific modifier combo test",
+                    description: "Side-specific modifier test",
                 }),
 
                 bind("f10", key("escape"), {

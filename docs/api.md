@@ -251,9 +251,9 @@ held     -> to_if_held_down
 finished -> to_after_key_up
 ```
 
-## Key combo helpers
+## Modifier helpers
 
-Combo helpers express modified input and output keys without manually writing Karabiner modifier objects.
+Modifier helpers express modified input and output keys without manually writing Karabiner modifier objects.
 
 Use them directly as `bind()` inputs:
 
@@ -311,6 +311,49 @@ ctrl  -> control
 opt   -> option
 shift -> shift
 ```
+
+### Grouped modifiers
+
+Grouped helpers provide convenient names for commonly used multi-modifier combinations:
+
+```ts
+hyper("a");
+meh("a");
+trio("a");
+```
+
+They map to:
+
+```text
+hyper -> command + control + option + shift
+meh   -> control + option + shift
+trio  -> command + control + option
+```
+
+They can be used as modified inputs:
+
+```ts
+bind(hyper("h"), key("left_arrow"));
+bind(meh("m"), key("mute"));
+bind(trio("spacebar"), key("f18"));
+```
+
+Or as modified outputs:
+
+```ts
+bind("h", key(hyper("h")));
+bind("m", key(meh("m")));
+bind("spacebar", key(trio("spacebar")));
+```
+
+Grouped helpers can also be nested with individual modifier helpers:
+
+```ts
+shift(trio("h"));
+cmd(meh("m"));
+```
+
+Repeated modifiers are deduplicated.
 
 ### Side-specific modifiers
 
@@ -384,7 +427,7 @@ cmd("h");
 
 ### Raw modifier options
 
-Do not provide modifiers through both a combo helper and the corresponding raw modifier option.
+Do not provide modifiers through both a modifier helper and the corresponding raw modifier option.
 
 For binding inputs, this is invalid:
 
@@ -404,7 +447,7 @@ key(cmd("spacebar"), {
 });
 ```
 
-Use nested combo helpers instead:
+Use nested modifier helpers instead:
 
 ```ts
 bind(cmd(shift("spacebar")), key("f18"));
@@ -480,13 +523,13 @@ key("tab", {
 });
 ```
 
-Prefer combo helpers for normal config authoring:
+Prefer modifier helpers for normal config authoring:
 
 ```ts
 key(leftCmd("tab"));
 ```
 
-Do not provide modifiers through both a combo helper and `options.modifiers`:
+Do not provide modifiers through both a modifier helper and `options.modifiers`:
 
 ```ts
 // Invalid
@@ -495,13 +538,13 @@ key(cmd("tab"), {
 });
 ```
 
-Nest combo helpers instead:
+Nest modifier helpers instead:
 
 ```ts
 key(cmd(leftShift("tab")));
 ```
 
-Karabiner output options can still be provided alongside a combo:
+Karabiner output options can still be provided alongside a modifier:
 
 ```ts
 key(cmd("tab"), {

@@ -1,6 +1,6 @@
 {
     "name": "karabiner-config-builder",
-    "version": "0.6.4",
+    "version": "0.7.0",
     "private": false,
     "description": "A TypeScript builder for generating karabiner.json.",
     "type": "module",
@@ -28,8 +28,8 @@
         "cli": "tsx src/cli/index.ts",
         "patch": "npm version patch --no-git-tag-version",
         "minor": "npm version minor --no-git-tag-version",
-        "update:patch": "npm run patch && npm run check && npm run build && npm run repack",
-        "update:minor": "npm run minor && npm run check && npm run build && npm run repack",
+        "update:patch": "npm run patch && npm run smoke:all && npm run repack",
+        "update:minor": "npm run minor && npm run smoke:all && npm run repack",
         "smoke": "npm run check && npm run build && node dist/cli/index.js --help",
         "smoke:reset": "rm -rf /tmp/kcb-smoke-home /tmp/kcb-smoke-workspace /tmp/kcb-smoke-build.json && mkdir -p /tmp/kcb-smoke-home",
         "smoke:init": "npm run smoke:reset && HOME=/tmp/kcb-smoke-home node dist/cli/index.js init /tmp/kcb-smoke-workspace && HOME=/tmp/kcb-smoke-home node dist/cli/index.js config list",

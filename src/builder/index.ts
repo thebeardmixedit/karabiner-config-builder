@@ -3,7 +3,7 @@ export * from "./profile.js";
 export * from "./group.js";
 export * from "./remap.js";
 export * from "./bind.js";
-export * from "./combo.js";
+export * from "./modifier.js";
 export * from "./layer.js";
 export * from "./outputs/index.js";
 export * from "./conditions/index.js";

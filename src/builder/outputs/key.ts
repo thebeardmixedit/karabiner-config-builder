@@ -1,5 +1,5 @@
 import type { KeyCode, Modifier, To } from "../../karabiner/index.js";
-import { isKeyCombo, type KeyCombo } from "../combo.js";
+import { isKeyCombo, type KeyCombo } from "../modifier.js";
 
 export interface KeyOptions {
     modifiers?: Modifier[];
@@ -13,8 +13,8 @@ export function key(input: KeyCode | KeyCombo, options: KeyOptions = {}): To {
     if (isKeyCombo(input)) {
         if (options.modifiers) {
             throw new Error(
-                "key() received modifiers in both the key combo and options.modifiers.\n" +
-                    "Use combo helpers or options.modifiers, not both.",
+                "key() received modifiers in both the modifier and options.modifiers.\n" +
+                    "Use modifier helpers or options.modifiers, not both.",
             );
         }
 

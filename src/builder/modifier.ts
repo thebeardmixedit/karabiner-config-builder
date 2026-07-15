@@ -56,6 +56,18 @@ export function rightShift(input: ComboInput): KeyCombo {
     return addModifier(input, "right_shift");
 }
 
+export function hyper(input: ComboInput): KeyCombo {
+    return addModifiers(input, ["command", "control", "option", "shift"]);
+}
+
+export function meh(input: ComboInput): KeyCombo {
+    return addModifiers(input, ["control", "option", "shift"]);
+}
+
+export function trio(input: ComboInput): KeyCombo {
+    return addModifiers(input, ["command", "control", "option"]);
+}
+
 export function isKeyCombo(input: ComboInput): input is KeyCombo {
     return (
         typeof input === "object" &&
@@ -65,8 +77,12 @@ export function isKeyCombo(input: ComboInput): input is KeyCombo {
 }
 
 function addModifier(input: ComboInput, modifier: Modifier): KeyCombo {
+    return addModifiers(input, [modifier]);
+}
+
+function addModifiers(input: ComboInput, modifiers: Modifier[]): KeyCombo {
     if (!isKeyCombo(input)) {
-        return createCombo(input, [modifier]);
+        return createCombo(input, modifiers);
     }
 
     return {
@@ -75,7 +91,7 @@ function addModifier(input: ComboInput, modifier: Modifier): KeyCombo {
             ...input.modifiers,
             mandatory: dedupeModifiers([
                 ...(input.modifiers.mandatory ?? []),
-                modifier,
+                ...modifiers,
             ]),
         },
     };

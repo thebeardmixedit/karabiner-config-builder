@@ -6,7 +6,7 @@ import type {
     Modifier,
     To,
 } from "../karabiner/index.js";
-import { isKeyCombo, type KeyCombo } from "./combo.js";
+import { isKeyCombo, type KeyCombo } from "./modifier.js";
 import { allowCapsLock } from "./utils/index.js";
 
 type Output = To | To[];
@@ -85,8 +85,8 @@ function createFrom(from: BindFrom, options: BindOptions): BindFromKey {
 
     if (options.modifiers) {
         throw new Error(
-            "bind() received modifiers in both the key combo and options.modifiers.\n" +
-                "Use combo helpers or options.modifiers, not both.",
+            "bind() received modifiers in both the modifier and options.modifiers.\n" +
+                "Use modifier helpers or options.modifiers, not both.",
         );
     }
 
